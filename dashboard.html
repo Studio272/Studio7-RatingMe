@@ -1790,7 +1790,7 @@
 
 
     // ======= HARDCODED DEFAULTS (persist across all browsers/devices) =======
-    const DEFAULT_API_KEY = 'AIzaSyD1XqYl2SXYvf151xCVp_w-Dw2GsZJKa74';
+    const DEFAULT_API_KEY = ''; // ต้องใส่ API Key ใหม่ผ่านหน้า Admin Panel
     const defaultUsers = { "admin": "1234", "studio7": "studio7", "10562": "10562" };
 
     // ======= CLOUD SYNC via GitHub API =======
@@ -3206,18 +3206,27 @@ CRITICAL: All textual values MUST BE IN THAI LANGUAGE.
         let availableModels = [];
         try {
           const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-          const listData = await listRes.json();
-          if (listData.models) {
-            availableModels = listData.models.filter(m =>
-              m.supportedGenerationMethods &&
-              m.supportedGenerationMethods.includes('generateContent') &&
-              m.name.includes('gemini')
-            ).map(m => m.name.replace('models/', ''));
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            if (listData.models) {
+              availableModels = listData.models.filter(m =>
+                m.supportedGenerationMethods &&
+                m.supportedGenerationMethods.includes('generateContent') &&
+                m.name.includes('gemini')
+              ).map(m => m.name.replace('models/', ''));
+            }
+          } else {
+            const errBody = await listRes.text();
+            if (errBody.includes('leaked')) {
+              throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
+            }
           }
-        } catch (e) { }
+        } catch (e) {
+          if (e.message.includes('API Key')) throw e;
+        }
 
         if (availableModels.length === 0) {
-          availableModels = ["gemini-3.1-flash", "gemini-3.0-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite-preview-02-05"];
+          availableModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
         } else {
           availableModels = availableModels.sort((a, b) => b.localeCompare(a));
         }
@@ -3231,12 +3240,18 @@ CRITICAL: All textual values MUST BE IN THAI LANGUAGE.
           });
           targetModel = mName;
           if (res.ok) break;
-          errMap[mName] = await res.text();
+          const errTxt = await res.text();
+          errMap[mName] = errTxt;
+          if (errTxt.includes('leaked')) {
+            throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
+          }
           console.warn(`Model ${mName} failed: HTTP ${res.status}.`);
         }
         if (!res || !res.ok) {
+          let isLeaked = Object.values(errMap).some(e => e.includes('leaked'));
+          if (isLeaked) throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
           let isQuota = Object.values(errMap).some(e => e.includes('Quota exceeded') || e.includes('limit: 0'));
-          if (isQuota) throw new Error(`⚠️ API Key ติดขัดเรื่องโควตาฟรี (Quota Limit: 0)\nโปรเจกต์ Google ของท่านถูกจำกัดโควตาฟรี โปรดสร้างโปรเจกต์ใหม่ใน Google Cloud หรือผูกบัตรเพื่อปลดล็อก\nรายละเอียด:\n` + JSON.stringify(errMap));
+          if (isQuota) throw new Error('⚠️ API Key ติดขัดเรื่องโควตาฟรี (Quota Limit: 0)\nโปรดสร้าง API Key ใหม่ที่ https://aistudio.google.com/apikey\nแล้วมาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
           throw new Error(`All models failed. Errors: ` + JSON.stringify(errMap));
         }
 
@@ -3352,21 +3367,28 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
         let availableModels = [];
         try {
           const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-          const listData = await listRes.json();
-          if (listData.models) {
-            availableModels = listData.models.filter(m =>
-              m.supportedGenerationMethods &&
-              m.supportedGenerationMethods.includes('generateContent') &&
-              m.name.includes('gemini')
-            ).map(m => m.name.replace('models/', ''));
+          if (listRes.ok) {
+            const listData = await listRes.json();
+            if (listData.models) {
+              availableModels = listData.models.filter(m =>
+                m.supportedGenerationMethods &&
+                m.supportedGenerationMethods.includes('generateContent') &&
+                m.name.includes('gemini')
+              ).map(m => m.name.replace('models/', ''));
+            }
+          } else {
+            const errBody = await listRes.text();
+            if (errBody.includes('leaked')) {
+              throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
+            }
           }
-        } catch (e) { }
+        } catch (e) {
+          if (e.message.includes('API Key')) throw e;
+        }
 
-        // Fallback sequence if API list fails
         if (availableModels.length === 0) {
-          availableModels = ["gemini-3.1-flash", "gemini-3.0-flash", "gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.0-flash-lite-preview-02-05"];
+          availableModels = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"];
         } else {
-          // prioritize flash/pro
           availableModels = availableModels.sort((a, b) => b.localeCompare(a));
         }
 
@@ -3386,16 +3408,17 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
 
           const errTxt = await res.text();
           errMap[mName] = errTxt;
-
-          // If it's a quota issue (Limit:0) specific to this model, we still try others, but if ALL fail, we warn nicely.
+          if (errTxt.includes('leaked')) {
+            throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
+          }
           console.warn(`Model ${mName} failed: HTTP ${res.status}.`);
         }
 
         if (!res || !res.ok) {
+          let isLeaked = Object.values(errMap).some(e => e.includes('leaked'));
+          if (isLeaked) throw new Error('🔑 API Key ถูก Google ตรวจจับว่ารั่วไหลและถูกระงับถาวร!\n\nกรุณาสร้าง API Key ใหม่:\n1. ไปที่ https://aistudio.google.com/apikey\n2. คลิก "Create API Key"\n3. คัดลอก Key ใหม่มาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
           let isQuota = Object.values(errMap).some(e => e.includes('Quota exceeded') || e.includes('limit: 0'));
-          if (isQuota) {
-            throw new Error(`⚠️ API Key ติดขัดเรื่องโควตาฟรี (Quota Limit: 0)\nบัญชี Google ของท่านถูกจำกัดโควตาไว้ที่ 0 โปรดสร้างโปรเจกต์ใหม่ใน Google Cloud หรือผูกบัตรเครดิตเพื่อปลดล็อกโควตานะครับ!\n\nข้อมูลเชิงลึก:\n` + JSON.stringify(errMap, null, 2));
-          }
+          if (isQuota) throw new Error('⚠️ API Key ติดขัดเรื่องโควตาฟรี (Quota Limit: 0)\nโปรดสร้าง API Key ใหม่ที่ https://aistudio.google.com/apikey\nแล้วมาใส่ในหน้า "จัดการ User" → "ตั้งค่า Google Gemini API"');
           throw new Error(`All models failed. Errors: ` + JSON.stringify(errMap));
         }
 
