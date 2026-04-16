@@ -10,8 +10,6 @@
     "newuser01": "pass1234"
   },
   "pending": {
-    "test01": "test01",
-    "teast02": "test02",
     "test1": "test1"
   },
   "reset_requests": [
