@@ -1884,10 +1884,14 @@
       }
     };
 
-    // Auto-set API Key if not already set
-    if (!localStorage.getItem('s7_gemini_api')) {
-      localStorage.setItem('s7_gemini_api', DEFAULT_API_KEY);
-    }
+    // Force-replace old leaked API key on all devices
+    (function initApiKey() {
+      const stored = localStorage.getItem('s7_gemini_api') || '';
+      // Replace if: empty, or contains the old leaked key (AIzaSyD1X...)
+      if (!stored || stored.startsWith('AIzaSyD1X') || stored === 'undefined') {
+        localStorage.setItem('s7_gemini_api', DEFAULT_API_KEY);
+      }
+    })();
 
     // Initial sync: fetch from cloud then merge with defaults
     (async function initUsers() {
