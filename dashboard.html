@@ -1524,11 +1524,11 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div class="chart-card">
             <div class="chart-title">📈 ยอดขายรายเดือน (Monthly Sales)</div>
-            <canvas id="sa-chart-monthly" height="280"></canvas>
+            <canvas id="sa-chart-monthly" height="200"></canvas>
           </div>
           <div class="chart-card">
             <div class="chart-title">🏆 รุ่นยอดนิยม (Top Models)</div>
-            <canvas id="sa-chart-models" height="280"></canvas>
+            <canvas id="sa-chart-models" height="200"></canvas>
           </div>
         </div>
 
@@ -1536,11 +1536,11 @@
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
           <div class="chart-card">
             <div class="chart-title">👥 สัดส่วนลูกค้า (Customer Segment)</div>
-            <canvas id="sa-chart-customer" height="280"></canvas>
+            <canvas id="sa-chart-customer" height="200"></canvas>
           </div>
           <div class="chart-card">
             <div class="chart-title">📊 สัดส่วนหมวดหมู่ (Category Mix)</div>
-            <canvas id="sa-chart-catmix" height="280"></canvas>
+            <canvas id="sa-chart-catmix" height="200"></canvas>
           </div>
         </div>
 
@@ -2430,7 +2430,7 @@
           staffName: cleanName, staffId: String(row[staffIdKey] || '-').trim(),
           branch,
           price: getVal(row[priceKey]), qty: getVal(row[qtyKey]), docNo: String(row[docNoKey] || '').trim().toUpperCase(),
-          category: groupCat, subCategory: rawCat || rawSubCat || 'Other', productName: String(row[productKey] || '').trim(),
+          category: groupCat, subCategory: rawCat || rawSubCat || 'Other', subCatK: rawSubCat, productName: String(row[productKey] || '').trim(),
           rating: getVal(row[ratingKey]), topic: isRating ? (String(row[topicKey] || '').trim() || topicStr || 'อื่นๆ') : String(row[topicKey] || 'อื่นๆ').trim(),
           feedback1: String(row[fb1Key] || '').trim(), feedback2: String(row[fb2Key] || '').trim(),
           catId: String(row[catIdKey] || '').trim(), productType: String(row[prodTypeKey] || '').trim(),
@@ -2743,84 +2743,143 @@
       return 'ลูกค้าทั่วไป';
     }
 
-    function getSalesAnalysisData() {
-      let filtered = state.sales.filter(s => {
+    function getSAFiltered(salesArr, opts) {
+      let branch = opts.branch || state.selectedBranch;
+      let month = opts.month || state.selectedMonth;
+      let year = opts.year || state.selectedYear;
+      let cat = opts.cat || state.selectedCat;
+      return salesArr.filter(s => {
         let pt = (s.productType || '').toUpperCase().trim();
         if (pt !== 'INVENTORY ITEM') return false;
         if (!SA_VALID_CATS.includes(s.catId)) return false;
-        // AirPods: catId=162, also check subCategory contains AIRPODS
         if (s.catId === '162') {
-          let sub = (s.subCategory || '').toUpperCase();
+          let sub = (s.subCatK || s.subCategory || '').toUpperCase();
           if (!sub.includes('AIRPODS')) return false;
         }
-        if (state.selectedBranch !== 'all' && s.branch !== state.selectedBranch) return false;
-        if (state.selectedMonth !== 'all' && s.month !== parseInt(state.selectedMonth)) return false;
-        if (state.selectedYear !== 'all' && s.year !== parseInt(state.selectedYear)) return false;
+        if (branch !== 'all' && s.branch !== branch) return false;
+        if (month !== 'all' && s.month !== parseInt(month)) return false;
+        if (year !== 'all' && s.year !== parseInt(year)) return false;
+        if (cat !== 'all' && (s.category || '').trim().toLowerCase() !== cat.trim().toLowerCase()) return false;
         return true;
       });
-      return filtered;
     }
 
     function getModelName(s) {
       let cat = s.category;
-      let sub = (s.subCategory || '').trim();
+      let subK = (s.subCatK || '').trim().toUpperCase();
       let prod = (s.productName || '').trim();
 
-      if (cat === 'Mac' || cat === 'Apple Watch' || cat === 'AirPods') {
-        return sub || prod || cat;
+      if (cat === 'Mac') {
+        if (subK.includes('MACBOOK') && subK.includes('NEO')) return 'MacBook Neo';
+        if (subK.includes('MACBOOK AIR')) return 'MacBook Air';
+        if (subK.includes('MACBOOK PRO')) return 'MacBook Pro Retina';
+        if (subK.includes('IMAC')) return 'iMac';
+        if (subK.includes('MAC MINI')) return 'Mac Mini';
+        if (subK.includes('MAC STUDIO')) return 'Mac Studio';
+        if (subK.includes('MAC PRO')) return 'Mac Pro';
+        // fallback: check productName
+        let pUp = prod.toUpperCase();
+        if (pUp.includes('MACBOOK') && pUp.includes('NEO')) return 'MacBook Neo';
+        if (pUp.includes('MACBOOK AIR')) return 'MacBook Air';
+        if (pUp.includes('MACBOOK PRO')) return 'MacBook Pro Retina';
+        if (pUp.includes('IMAC')) return 'iMac';
+        if (pUp.includes('MAC MINI')) return 'Mac Mini';
+        return subK || prod || 'Mac (อื่นๆ)';
       }
       if (cat === 'iPad') {
-        let pLow = (sub + ' ' + prod).toLowerCase();
-        if (pLow.includes('ipad air')) return 'iPad Air';
-        if (pLow.includes('ipad pro')) return 'iPad Pro';
-        if (pLow.includes('ipad mini')) return 'iPad Mini';
+        let combined = (subK + ' ' + prod.toUpperCase());
+        if (combined.includes('IPAD AIR')) return 'iPad Air';
+        if (combined.includes('IPAD PRO')) return 'iPad Pro';
+        if (combined.includes('IPAD MINI')) return 'iPad Mini';
         return 'iPad';
       }
       if (cat === 'iPhone') {
-        return sub || prod || 'iPhone';
+        return subK || prod || 'iPhone';
       }
-      return sub || prod || cat;
+      if (cat === 'Apple Watch') {
+        return subK || prod || 'Apple Watch';
+      }
+      if (cat === 'AirPods') {
+        // Use productName (column B) for AirPods model
+        if (prod) return prod;
+        return subK || 'AirPods';
+      }
+      return subK || prod || cat;
+    }
+
+    function calcChange(cur, prev) {
+      if (!prev || prev === 0) return cur > 0 ? '+100' : '0';
+      return ((cur - prev) / prev * 100).toFixed(1);
     }
 
     function renderSalesAnalysis() {
-      let data = getSalesAnalysisData();
+      let curData = getSAFiltered(state.sales, {});
+
+      // Previous period for MoM
+      let pMonth = state.selectedMonth !== 'all' ? (parseInt(state.selectedMonth) === 1 ? '12' : String(parseInt(state.selectedMonth) - 1)) : 'all';
+      let pYearMoM = (state.selectedMonth !== 'all' && parseInt(state.selectedMonth) === 1 && state.selectedYear !== 'all') ? String(parseInt(state.selectedYear) - 1) : state.selectedYear;
+      let momData = getSAFiltered(state.sales, { month: pMonth, year: pYearMoM });
+
+      // Previous period for YoY
+      let pYearYoY = state.selectedYear !== 'all' ? String(parseInt(state.selectedYear) - 1) : 'all';
+      let yoyData = getSAFiltered(state.sales, { year: pYearYoY });
+
       let totalRev = 0, totalUnits = 0;
+      let momRev = 0, momUnits = 0;
+      let yoyRev = 0, yoyUnits = 0;
       let datesSet = new Set();
       let monthlyMap = {};
       let modelMap = {};
       let customerMap = { 'ลูกค้าทั่วไป': 0, 'นักเรียน/นักศึกษา': 0, 'บริษัท': 0 };
       let catMixMap = {};
 
-      data.forEach(s => {
-        totalRev += s.price;
-        totalUnits += s.qty;
+      curData.forEach(s => {
+        totalRev += s.price; totalUnits += s.qty;
         if (s.date) datesSet.add(s.date);
-
-        // Monthly
         let mk = `${s.year}-${String(s.month).padStart(2,'0')}`;
         if (!monthlyMap[mk]) monthlyMap[mk] = { rev: 0, units: 0 };
-        monthlyMap[mk].rev += s.price;
-        monthlyMap[mk].units += s.qty;
-
-        // Models
+        monthlyMap[mk].rev += s.price; monthlyMap[mk].units += s.qty;
         let mName = getModelName(s);
         if (!modelMap[mName]) modelMap[mName] = { qty: 0, rev: 0, cat: s.category };
-        modelMap[mName].qty += s.qty;
-        modelMap[mName].rev += s.price;
-
-        // Customer
-        let cSeg = classifyCustomer(s.customerCode);
-        customerMap[cSeg] = (customerMap[cSeg] || 0) + s.qty;
-
-        // Category Mix
+        modelMap[mName].qty += s.qty; modelMap[mName].rev += s.price;
+        customerMap[classifyCustomer(s.customerCode)] += s.qty;
         catMixMap[s.category] = (catMixMap[s.category] || 0) + s.qty;
       });
+      momData.forEach(s => { momRev += s.price; momUnits += s.qty; });
+      yoyData.forEach(s => { yoyRev += s.price; yoyUnits += s.qty; });
 
-      // KPIs
-      document.getElementById('sa-kpi-revenue').textContent = '฿' + totalRev.toLocaleString();
-      document.getElementById('sa-kpi-units').textContent = totalUnits.toLocaleString();
+      let revMoM = calcChange(totalRev, momRev);
+      let revYoY = calcChange(totalRev, yoyRev);
+      let unitMoM = calcChange(totalUnits, momUnits);
+      let unitYoY = calcChange(totalUnits, yoyUnits);
+
+      let chgColor = v => parseFloat(v) >= 0 ? '#10b981' : '#ef4444';
+      let chgArrow = v => parseFloat(v) >= 0 ? '▲' : '▼';
+
+      // KPIs with YoY/MoM
+      document.getElementById('sa-kpi-revenue').innerHTML = '฿' + totalRev.toLocaleString() +
+        `<div style="font-size:11px;margin-top:4px;"><span style="color:${chgColor(revMoM)}">${chgArrow(revMoM)} MoM ${revMoM}%</span> | <span style="color:${chgColor(revYoY)}">${chgArrow(revYoY)} YoY ${revYoY}%</span></div>`;
+      document.getElementById('sa-kpi-units').innerHTML = totalUnits.toLocaleString() +
+        `<div style="font-size:11px;margin-top:4px;"><span style="color:${chgColor(unitMoM)}">${chgArrow(unitMoM)} MoM ${unitMoM}%</span> | <span style="color:${chgColor(unitYoY)}">${chgArrow(unitYoY)} YoY ${unitYoY}%</span></div>`;
       document.getElementById('sa-kpi-avg').textContent = totalUnits > 0 ? '฿' + Math.round(totalRev / totalUnits).toLocaleString() : '฿0';
       document.getElementById('sa-kpi-days').textContent = datesSet.size;
+
+      // Pie chart % plugin
+      const pctPlugin = { id: 'pctLabels', afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        chart.data.datasets.forEach((ds, di) => {
+          let meta = chart.getDatasetMeta(di);
+          let total = ds.data.reduce((a,b) => a+b, 0);
+          meta.data.forEach((el, i) => {
+            if (total === 0) return;
+            let pct = ((ds.data[i] / total) * 100).toFixed(1);
+            if (parseFloat(pct) < 3) return;
+            let { x, y } = el.tooltipPosition();
+            ctx.save(); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(pct + '%', x, y); ctx.restore();
+          });
+        });
+      }};
 
       // Monthly Line Chart
       let mKeys = Object.keys(monthlyMap).sort();
@@ -2836,61 +2895,52 @@
           ]
         },
         options: {
-          responsive: true, plugins: { legend: { position: 'top' } },
+          responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
           scales: {
-            y: { position: 'left', ticks: { callback: v => '฿' + (v/1e6).toFixed(1) + 'M' } },
-            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + ' u' } }
+            y: { position: 'left', ticks: { font: { size: 10 }, callback: v => '฿' + (v >= 1e6 ? (v/1e6).toFixed(1)+'M' : (v/1e3).toFixed(0)+'K') } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 10 }, callback: v => v + 'u' } }
           }
         }
       });
 
       // Top Models Pie
-      let modelArr = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty).slice(0, 10);
-      let pieColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#64748b'];
+      let modelArr = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty).slice(0, 8);
+      let pieColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6'];
       if (charts['sa-models']) charts['sa-models'].destroy();
       charts['sa-models'] = new Chart(document.getElementById('sa-chart-models'), {
         type: 'doughnut',
-        data: {
-          labels: modelArr.map(m => m[0]),
-          datasets: [{ data: modelArr.map(m => m[1].qty), backgroundColor: pieColors }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+        data: { labels: modelArr.map(m => m[0]), datasets: [{ data: modelArr.map(m => m[1].qty), backgroundColor: pieColors }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'right', labels: { font: { size: 10 }, boxWidth: 12 } } } },
+        plugins: [pctPlugin]
       });
 
       // Customer Segment Pie
       if (charts['sa-customer']) charts['sa-customer'].destroy();
       charts['sa-customer'] = new Chart(document.getElementById('sa-chart-customer'), {
         type: 'doughnut',
-        data: {
-          labels: Object.keys(customerMap),
-          datasets: [{ data: Object.values(customerMap), backgroundColor: ['#6366f1','#f59e0b','#10b981'] }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } } }
+        data: { labels: Object.keys(customerMap), datasets: [{ data: Object.values(customerMap), backgroundColor: ['#6366f1','#f59e0b','#10b981'] }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } },
+        plugins: [pctPlugin]
       });
 
       // Category Mix Pie
-      let catColors = { 'Mac': '#6366f1', 'iPad': '#f59e0b', 'iPhone': '#10b981', 'Apple Watch': '#ef4444', 'AirPods': '#8b5cf6' };
+      let catColors = { 'Mac':'#6366f1','iPad':'#f59e0b','iPhone':'#10b981','Apple Watch':'#ef4444','AirPods':'#8b5cf6' };
       if (charts['sa-catmix']) charts['sa-catmix'].destroy();
       charts['sa-catmix'] = new Chart(document.getElementById('sa-chart-catmix'), {
         type: 'doughnut',
-        data: {
-          labels: Object.keys(catMixMap),
-          datasets: [{ data: Object.values(catMixMap), backgroundColor: Object.keys(catMixMap).map(c => catColors[c] || '#64748b') }]
-        },
-        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } } }
+        data: { labels: Object.keys(catMixMap), datasets: [{ data: Object.values(catMixMap), backgroundColor: Object.keys(catMixMap).map(c => catColors[c]||'#64748b') }] },
+        options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } },
+        plugins: [pctPlugin]
       });
 
-      // Build iPhone model list for Hero selector
-      buildHeroSelector(data);
-
-      // Render Model Table
-      renderSalesModelTable(data, totalUnits);
+      buildHeroSelector(curData);
+      renderSalesModelTable(curData, totalUnits);
     }
 
     function buildHeroSelector(data) {
       let iPhoneModels = new Set();
       data.filter(s => s.category === 'iPhone').forEach(s => {
-        let m = getModelName(s);
+        let m = (s.subCatK || '').trim();
         if (m) iPhoneModels.add(m);
       });
       let container = document.getElementById('sa-hero-checkboxes');
@@ -2898,15 +2948,20 @@
       [...iPhoneModels].sort().forEach(m => {
         let checked = saHeroModels.has(m) ? 'checked' : '';
         container.innerHTML += `<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--bg);border-radius:6px;cursor:pointer;border:1px solid var(--border);">
-          <input type="checkbox" ${checked} onchange="toggleHeroModel('${m.replace(/'/g,"\\'")}')" style="accent-color:var(--accent);"> ${m}
+          <input type="checkbox" ${checked} onchange="toggleHeroModel(this.parentElement.dataset.m)" data-m="${m}" style="accent-color:var(--accent);"> ${m}
         </label>`;
+      });
+      // Add event listeners properly
+      container.querySelectorAll('label').forEach(lbl => {
+        lbl.dataset.m = lbl.querySelector('input').dataset.m;
       });
     }
 
     window.toggleHeroModel = function(m) {
       if (saHeroModels.has(m)) saHeroModels.delete(m);
       else saHeroModels.add(m);
-      renderSalesModelTable(getSalesAnalysisData(), null);
+      let data = getSAFiltered(state.sales, {});
+      renderSalesModelTable(data, null);
     };
 
     function renderSalesModelTable(data, overrideTotalUnits) {
@@ -2914,26 +2969,18 @@
       if (saCurrentCatTab !== 'all') {
         filtered = filtered.filter(s => s.category === saCurrentCatTab);
       }
-
-      // Group by model
       let modelMap = {};
       let totalUnits = 0;
       filtered.forEach(s => {
         let mName = getModelName(s);
-
-        // iPhone: group into Hero / N-Hero
-        if (s.category === 'iPhone' && saCurrentCatTab === 'iPhone') {
-          if (saHeroModels.size > 0) {
-            mName = saHeroModels.has(mName) ? '🌟 Hero: ' + mName : 'N- ' + mName;
-          }
+        if (s.category === 'iPhone' && saCurrentCatTab === 'iPhone' && saHeroModels.size > 0) {
+          let subK = (s.subCatK || '').trim();
+          mName = saHeroModels.has(subK) ? '🌟 Hero: ' + subK : 'N- ' + subK;
         }
-
         if (!modelMap[mName]) modelMap[mName] = { qty: 0, rev: 0, cat: s.category };
-        modelMap[mName].qty += s.qty;
-        modelMap[mName].rev += s.price;
+        modelMap[mName].qty += s.qty; modelMap[mName].rev += s.price;
         totalUnits += s.qty;
       });
-
       let rows = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty);
       let tb = document.getElementById('sa-model-table');
       let html = '';
@@ -2959,9 +3006,8 @@
       saCurrentCatTab = cat;
       btn.parentElement.querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      // Show/hide Hero selector for iPhone
       document.getElementById('sa-hero-selector').style.display = cat === 'iPhone' ? 'block' : 'none';
-      renderSalesModelTable(getSalesAnalysisData(), null);
+      renderSalesModelTable(getSAFiltered(state.sales, {}), null);
     };
 
     function renderDashboard() {
