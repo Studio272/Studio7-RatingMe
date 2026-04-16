@@ -1780,10 +1780,23 @@
 
 
 
+    // ======= HARDCODED DEFAULTS (persist across all browsers/devices) =======
+    const DEFAULT_API_KEY = 'AIzaSyD1XqYl2SXYvf151xCVp_w-Dw2GsZJKa74';
     const defaultUsers = { "admin": "1234", "studio7": "studio7" };
-    if (!localStorage.getItem('s7_users')) {
-      localStorage.setItem('s7_users', JSON.stringify(defaultUsers));
+
+    // Auto-set API Key if not already set
+    if (!localStorage.getItem('s7_gemini_api')) {
+      localStorage.setItem('s7_gemini_api', DEFAULT_API_KEY);
     }
+
+    // MERGE: ensure default users always exist + keep any previously registered users
+    (function initUsers() {
+      let existing = {};
+      try { existing = JSON.parse(localStorage.getItem('s7_users')) || {}; } catch(e) {}
+      // Merge defaults into existing (defaults win on conflict)
+      let merged = Object.assign({}, existing, defaultUsers);
+      localStorage.setItem('s7_users', JSON.stringify(merged));
+    })();
 
     function checkLogin() {
       if (sessionStorage.getItem('s7_logged_in') !== 'true') {
@@ -1829,28 +1842,33 @@
       const u = document.getElementById('regUser').value.trim().toLowerCase();
       const p = document.getElementById('regPass').value.trim();
       if (!u || !p) {
-        document.getElementById('reg-error').textContent = '⚠️ กรุณากรอกขัอมูลให้ครบถ้วน';
+        document.getElementById('reg-error').textContent = '⚠️ กรุณากรอกข้อมูลให้ครบถ้วน';
+        document.getElementById('reg-error').style.display = 'block';
+        return;
+      }
+      if (p.length < 4) {
+        document.getElementById('reg-error').textContent = '⚠️ รหัสผ่านต้องมีอย่างน้อย 4 ตัวอักษร';
         document.getElementById('reg-error').style.display = 'block';
         return;
       }
 
-      // Check if user exists anywhere
-      let users = {}; let pending = {};
+      // Check if user already exists
+      let users = {};
       try { users = JSON.parse(localStorage.getItem('s7_users')) || {}; } catch (e) { }
-      try { pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {}; } catch (e) { }
 
-      if (users[u] || pending[u] || u === 'admin' || u === 'studio7') {
+      if (users[u] || defaultUsers[u]) {
         document.getElementById('reg-error').textContent = '❌ ชื่อผู้ใช้งานนี้ถูกใช้ไปแล้ว';
         document.getElementById('reg-error').style.display = 'block';
         return;
       }
 
-      // Add to pending
-      pending[u] = p;
-      localStorage.setItem('s7_pending_users', JSON.stringify(pending));
+      // AUTO-APPROVE: Add directly to s7_users (no pending needed)
+      users[u] = p;
+      localStorage.setItem('s7_users', JSON.stringify(users));
 
       // Success State
       document.getElementById('reg-error').style.display = 'none';
+      document.getElementById('reg-success').innerHTML = '✅ ลงทะเบียนสำเร็จ!<br>สามารถเข้าสู่ระบบได้ทันที';
       document.getElementById('reg-success').style.display = 'block';
       document.getElementById('btnSubmitReg').style.display = 'none';
     }
@@ -1882,9 +1900,11 @@
       const p = document.getElementById('loginPass').value.trim();
 
       let valid = false;
-      if (u === 'admin' && p === '1234') valid = true;
-      else if (u === 'studio7' && p === 'studio7') valid = true;
-      else {
+      // Check hardcoded defaults first
+      if (defaultUsers[u] && defaultUsers[u] === p) {
+        valid = true;
+      } else {
+        // Then check localStorage (registered users)
         try {
           const usersRaw = localStorage.getItem('s7_users');
           if (usersRaw) {
@@ -1941,7 +1961,7 @@
       renderAdminResets();
       renderAdminTelemetry();
       const apiEl = document.getElementById('gemini-api-key');
-      if (apiEl) apiEl.value = localStorage.getItem('s7_gemini_api') || '';
+      if (apiEl) apiEl.value = localStorage.getItem('s7_gemini_api') || DEFAULT_API_KEY;
       document.getElementById('adminModal').classList.add('active');
     }
     function saveApiKey() {
@@ -2986,7 +3006,7 @@
 
     window.generateStoreAIAnalysis = async function () {
       if (!state || !state.rating || state.rating.length === 0) { alert("ยังไม่มีข้อมูล Rating Demo ให้อ่านครับ"); return; }
-      const apiKey = localStorage.getItem('s7_gemini_api');
+      const apiKey = localStorage.getItem('s7_gemini_api') || DEFAULT_API_KEY;
       if (!apiKey) { alert("คุณยังไม่ได้ตั้งค่า API Key! กรุณาไปที่ปุ่ม 'จัดการ User' เพื่อตั้งค่า Google Gemini API Key ก่อนครับ"); return; }
 
       let filtered = state.rating;
@@ -3125,7 +3145,7 @@ CRITICAL: All textual values MUST BE IN THAI LANGUAGE.
     window.generateAIAnalysis = async function () {
       const data = window.currentStaffForAI;
       if (!data) return;
-      const apiKey = localStorage.getItem('s7_gemini_api');
+      const apiKey = localStorage.getItem('s7_gemini_api') || DEFAULT_API_KEY;
       if (!apiKey) { alert("คุณยังไม่ได้ตั้งค่า API Key! กรุณาไปที่ปุ่ม 'จัดการ User' เพื่อตั้งค่า Google Gemini API Key ก่อนครับ"); return; }
 
       document.getElementById('ai-json-output').textContent = "กำลังเชื่อมต่อไปยัง Google Gemini API... รอสักครู่ ⏳";
@@ -3161,7 +3181,7 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
 - average_demo_rating: ${data.avg_rating}/5`;
 
       try {
-        const apiKey = localStorage.getItem('s7_gemini_api');
+        const apiKey = localStorage.getItem('s7_gemini_api') || DEFAULT_API_KEY;
         if (!apiKey) throw new Error("API Key not found");
 
 
