@@ -1509,74 +1509,80 @@
       <!-- ===== NEW: Sales Analysis Tab ===== -->
       <div id="tab-salesAnalysis" class="tab-pane">
         <div class="sec" style="margin-top:0"><span class="sec-badge badge-green">💰 ข้อมูลยอดขาย</span>
-          <div class="sec-line"></div><span class="sec-sub">Sales Analysis (Inventory Item Only)</span>
+          <div class="sec-line"></div><span class="sec-sub" style="font-size:11px;">Sales Analysis — Inventory Item Only</span>
         </div>
 
-        <!-- KPI Overview -->
-        <div class="kpi-row" style="margin-bottom:14px">
-          <div class="kpi"><div class="kpi-val" id="sa-kpi-revenue" style="color:var(--accent)">฿0</div><div class="kpi-lbl">ยอดขายรวม (฿)</div></div>
-          <div class="kpi"><div class="kpi-val" id="sa-kpi-units" style="color:var(--green)">0</div><div class="kpi-lbl">จำนวนเครื่อง (Unit)</div></div>
-          <div class="kpi"><div class="kpi-val" id="sa-kpi-avg" style="color:var(--purple)">฿0</div><div class="kpi-lbl">ราคาเฉลี่ย/เครื่อง</div></div>
-          <div class="kpi"><div class="kpi-val" id="sa-kpi-days" style="color:var(--amber)">0</div><div class="kpi-lbl">จำนวนวัน</div></div>
+        <!-- KPI Overview: 5 cards -->
+        <div class="kpi-row" style="margin-bottom:10px">
+          <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-revenue" style="color:var(--accent);font-size:16px;">฿0</div><div class="kpi-lbl" style="font-size:10px;">ยอดขายรวม (฿)</div></div>
+          <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-units" style="color:var(--green);font-size:16px;">0</div><div class="kpi-lbl" style="font-size:10px;">จำนวนเครื่อง (Unit)</div></div>
+          <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-upd" style="color:#06b6d4;font-size:16px;">0</div><div class="kpi-lbl" style="font-size:10px;">เฉลี่ย Unit/วัน</div></div>
+          <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-avg" style="color:var(--purple);font-size:16px;">฿0</div><div class="kpi-lbl" style="font-size:10px;">ราคาเฉลี่ย/เครื่อง</div></div>
+          <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-days" style="color:var(--amber);font-size:16px;">0</div><div class="kpi-lbl" style="font-size:10px;">จำนวนวัน</div></div>
         </div>
 
-        <!-- Charts Row: Monthly + Models Pie -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div class="chart-card">
-            <div class="chart-title">📈 ยอดขายรายเดือน (Monthly Sales)</div>
-            <canvas id="sa-chart-monthly" height="200"></canvas>
-          </div>
-          <div class="chart-card">
-            <div class="chart-title">🏆 รุ่นยอดนิยม (Top Models)</div>
-            <canvas id="sa-chart-models" height="200"></canvas>
-          </div>
+        <!-- Monthly Line Chart (full width, compact) -->
+        <div class="chart-card" style="margin-bottom:10px;padding:10px 12px;">
+          <div class="chart-title" style="font-size:12px;margin-bottom:4px;">📈 ยอดขายรายเดือน</div>
+          <canvas id="sa-chart-monthly" height="140"></canvas>
         </div>
 
-        <!-- Charts Row: Customer Segment -->
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
-          <div class="chart-card">
-            <div class="chart-title">👥 สัดส่วนลูกค้า (Customer Segment)</div>
-            <canvas id="sa-chart-customer" height="200"></canvas>
+        <!-- 3 Pie Charts in one row — compact -->
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px;">
+          <div class="chart-card" style="padding:8px 10px;">
+            <div class="chart-title" style="font-size:11px;margin-bottom:2px;">🏆 รุ่นยอดนิยม</div>
+            <canvas id="sa-chart-models" height="140"></canvas>
           </div>
-          <div class="chart-card">
-            <div class="chart-title">📊 สัดส่วนหมวดหมู่ (Category Mix)</div>
-            <canvas id="sa-chart-catmix" height="200"></canvas>
+          <div class="chart-card" style="padding:8px 10px;">
+            <div class="chart-title" style="font-size:11px;margin-bottom:2px;">👥 สัดส่วนลูกค้า</div>
+            <canvas id="sa-chart-customer" height="140"></canvas>
+          </div>
+          <div class="chart-card" style="padding:8px 10px;">
+            <div class="chart-title" style="font-size:11px;margin-bottom:2px;">📊 หมวดหมู่</div>
+            <canvas id="sa-chart-catmix" height="140"></canvas>
           </div>
         </div>
 
         <!-- Model Breakdown Section -->
-        <div class="sec"><span class="sec-badge badge-purple">📋 ข้อมูลยอดขายแยกตามรุ่น</span>
+        <div class="sec" style="margin-bottom:6px;"><span class="sec-badge badge-purple" style="font-size:11px;">📋 ยอดขายแยกตามรุ่น</span>
           <div class="sec-line"></div>
         </div>
 
         <!-- Category Sub-tabs -->
-        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
-          <button class="t-tab-btn active" onclick="switchSalesModelTab('all', this)">ทั้งหมด</button>
-          <button class="t-tab-btn" onclick="switchSalesModelTab('Mac', this)">Mac</button>
-          <button class="t-tab-btn" onclick="switchSalesModelTab('iPad', this)">iPad</button>
-          <button class="t-tab-btn" onclick="switchSalesModelTab('iPhone', this)">iPhone</button>
-          <button class="t-tab-btn" onclick="switchSalesModelTab('Apple Watch', this)">Apple Watch</button>
-          <button class="t-tab-btn" onclick="switchSalesModelTab('AirPods', this)">AirPods</button>
+        <div style="display:flex; gap:4px; flex-wrap:wrap; margin-bottom:8px;">
+          <button class="t-tab-btn active" onclick="switchSalesModelTab('all', this)" style="font-size:11px;padding:4px 12px;">ทั้งหมด</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('Mac', this)" style="font-size:11px;padding:4px 12px;">Mac</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('iPad', this)" style="font-size:11px;padding:4px 12px;">iPad</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('iPhone', this)" style="font-size:11px;padding:4px 12px;">iPhone</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('Apple Watch', this)" style="font-size:11px;padding:4px 12px;">Apple Watch</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('AirPods', this)" style="font-size:11px;padding:4px 12px;">AirPods</button>
         </div>
 
-        <!-- iPhone Hero Selector (hidden by default) -->
-        <div id="sa-hero-selector" style="display:none; margin-bottom:12px; padding:10px 14px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
-          <div style="font-weight:600; margin-bottom:6px; color:var(--text); font-size:13px;">🎯 เลือกรุ่น Hero iPhone:</div>
-          <div id="sa-hero-checkboxes" style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px;"></div>
+        <!-- iPhone Hero Selector + Pie (hidden by default) -->
+        <div id="sa-hero-selector" style="display:none; margin-bottom:10px; padding:10px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
+          <div style="display:grid; grid-template-columns:1fr 200px; gap:12px; align-items:start;">
+            <div>
+              <div style="font-weight:600; margin-bottom:6px; color:var(--text); font-size:12px;">🎯 เลือกรุ่น Hero iPhone:</div>
+              <div id="sa-hero-checkboxes" style="display:flex; flex-wrap:wrap; gap:6px; font-size:11px;"></div>
+            </div>
+            <div>
+              <canvas id="sa-chart-hero" height="150" width="200"></canvas>
+            </div>
+          </div>
         </div>
 
         <!-- Model Table -->
         <div class="table-wrapper">
-          <table>
+          <table style="font-size:12px;">
             <thead>
               <tr>
-                <th>#</th>
-                <th>หมวดหมู่</th>
-                <th>รุ่น / Model</th>
-                <th class="text-r">จำนวน (Unit)</th>
-                <th class="text-r">ยอดขาย (฿)</th>
-                <th class="text-r">ราคาเฉลี่ย</th>
-                <th class="text-r">สัดส่วน %</th>
+                <th style="font-size:11px;">#</th>
+                <th style="font-size:11px;">หมวดหมู่</th>
+                <th style="font-size:11px;">รุ่น / Model</th>
+                <th class="text-r" style="font-size:11px;">Unit</th>
+                <th class="text-r" style="font-size:11px;">ยอดขาย (฿)</th>
+                <th class="text-r" style="font-size:11px;">เฉลี่ย</th>
+                <th class="text-r" style="font-size:11px;">สัดส่วน</th>
               </tr>
             </thead>
             <tbody id="sa-model-table"></tbody>
@@ -2857,10 +2863,11 @@
       let chgArrow = v => parseFloat(v) >= 0 ? '▲' : '▼';
 
       // KPIs with YoY/MoM
-      document.getElementById('sa-kpi-revenue').innerHTML = '฿' + totalRev.toLocaleString() +
-        `<div style="font-size:11px;margin-top:4px;"><span style="color:${chgColor(revMoM)}">${chgArrow(revMoM)} MoM ${revMoM}%</span> | <span style="color:${chgColor(revYoY)}">${chgArrow(revYoY)} YoY ${revYoY}%</span></div>`;
-      document.getElementById('sa-kpi-units').innerHTML = totalUnits.toLocaleString() +
-        `<div style="font-size:11px;margin-top:4px;"><span style="color:${chgColor(unitMoM)}">${chgArrow(unitMoM)} MoM ${unitMoM}%</span> | <span style="color:${chgColor(unitYoY)}">${chgArrow(unitYoY)} YoY ${unitYoY}%</span></div>`;
+      let chgHtml = (mom, yoy) => `<div style="font-size:9px;margin-top:3px;line-height:1.3;"><span style="color:${chgColor(mom)}">${chgArrow(mom)}MoM ${mom}%</span> <span style="color:${chgColor(yoy)}">${chgArrow(yoy)}YoY ${yoy}%</span></div>`;
+      document.getElementById('sa-kpi-revenue').innerHTML = '฿' + totalRev.toLocaleString() + chgHtml(revMoM, revYoY);
+      document.getElementById('sa-kpi-units').innerHTML = totalUnits.toLocaleString() + chgHtml(unitMoM, unitYoY);
+      let unitPerDay = datesSet.size > 0 ? (totalUnits / datesSet.size).toFixed(1) : '0';
+      document.getElementById('sa-kpi-upd').textContent = unitPerDay;
       document.getElementById('sa-kpi-avg').textContent = totalUnits > 0 ? '฿' + Math.round(totalRev / totalUnits).toLocaleString() : '฿0';
       document.getElementById('sa-kpi-days').textContent = datesSet.size;
 
@@ -2962,7 +2969,48 @@
       else saHeroModels.add(m);
       let data = getSAFiltered(state.sales, {});
       renderSalesModelTable(data, null);
+      renderHeroPie(data);
     };
+
+    function renderHeroPie(data) {
+      let canvas = document.getElementById('sa-chart-hero');
+      if (!canvas) return;
+      if (saHeroModels.size === 0) {
+        if (charts['sa-hero']) { charts['sa-hero'].destroy(); charts['sa-hero'] = null; }
+        return;
+      }
+      let iPhoneData = data.filter(s => s.category === 'iPhone');
+      let heroQty = 0, nHeroQty = 0;
+      iPhoneData.forEach(s => {
+        let subK = (s.subCatK || '').trim();
+        if (saHeroModels.has(subK)) heroQty += s.qty;
+        else nHeroQty += s.qty;
+      });
+      if (charts['sa-hero']) charts['sa-hero'].destroy();
+      charts['sa-hero'] = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+          labels: ['🌟 Hero', 'N- (Non-Hero)'],
+          datasets: [{ data: [heroQty, nHeroQty], backgroundColor: ['#6366f1', '#94a3b8'] }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: true,
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } }
+        },
+        plugins: [{ id: 'heroPct', afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          let ds = chart.data.datasets[0];
+          let total = ds.data.reduce((a,b)=>a+b, 0);
+          if (!total) return;
+          chart.getDatasetMeta(0).data.forEach((el, i) => {
+            let pct = ((ds.data[i]/total)*100).toFixed(1);
+            let { x, y } = el.tooltipPosition();
+            ctx.save(); ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText(pct+'%', x, y); ctx.restore();
+          });
+        }}]
+      });
+    }
 
     function renderSalesModelTable(data, overrideTotalUnits) {
       let filtered = data;
@@ -2991,7 +3039,7 @@
         html += `<tr>
           <td>${i+1}</td>
           <td><span class="sec-badge ${catBadge}" style="font-size:10px;padding:2px 8px;">${r[1].cat}</span></td>
-          <td style="font-weight:600;">${r[0]}</td>
+          <td style="font-weight:600;font-size:12px;">${r[0]}</td>
           <td class="text-r">${r[1].qty.toLocaleString()}</td>
           <td class="text-r">฿${r[1].rev.toLocaleString()}</td>
           <td class="text-r">฿${avg}</td>
