@@ -1,14 +1,16 @@
 {
   "users": {
+    "298": "298",
+    "369": "369",
     "10562": "10562",
+    "25620": "25620",
     "admin": "1234",
     "studio7": "studio7",
     "testuser1": "test1234",
     "demo01": "demo1234",
-    "cloudtest01cloud1234": "cloud1234"
-  },
-  "pending": {
+    "cloudtest01cloud1234": "cloud1234",
     "newuser01": "pass1234"
   },
+  "pending": {},
   "reset_requests": []
 }
