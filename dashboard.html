@@ -1512,6 +1512,30 @@
           <div class="sec-line"></div><span class="sec-sub" style="font-size:11px;">Sales Analysis — Inventory Item Only</span>
         </div>
 
+        <!-- Date Range Filter -->
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:10px; padding:8px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:11px; font-weight:600; color:var(--text);">📅 ช่วงวันที่:</span>
+          <input type="date" id="sa-date-start" style="font-size:11px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-family:'Sarabun',sans-serif;" onchange="applySADateFilter()">
+          <span style="font-size:11px; color:var(--sub);">ถึง</span>
+          <input type="date" id="sa-date-end" style="font-size:11px; padding:4px 8px; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-family:'Sarabun',sans-serif;" onchange="applySADateFilter()">
+          <span style="font-size:10px; color:var(--sub); margin-left:4px;" id="sa-date-display"></span>
+          <span style="font-size:11px; font-weight:600; color:var(--text); margin-left:8px;">เดือน:</span>
+          <div style="display:flex; gap:3px; flex-wrap:wrap;" id="sa-month-btns">
+            <button class="t-tab-btn" onclick="setSAMonth(1,this)" style="font-size:10px;padding:3px 7px;">ม.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(2,this)" style="font-size:10px;padding:3px 7px;">ก.พ.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(3,this)" style="font-size:10px;padding:3px 7px;">มี.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(4,this)" style="font-size:10px;padding:3px 7px;">เม.ย.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(5,this)" style="font-size:10px;padding:3px 7px;">พ.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(6,this)" style="font-size:10px;padding:3px 7px;">มิ.ย.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(7,this)" style="font-size:10px;padding:3px 7px;">ก.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(8,this)" style="font-size:10px;padding:3px 7px;">ส.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(9,this)" style="font-size:10px;padding:3px 7px;">ก.ย.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(10,this)" style="font-size:10px;padding:3px 7px;">ต.ค.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(11,this)" style="font-size:10px;padding:3px 7px;">พ.ย.</button>
+            <button class="t-tab-btn" onclick="setSAMonth(12,this)" style="font-size:10px;padding:3px 7px;">ธ.ค.</button>
+          </div>
+          <button onclick="clearSADateFilter()" style="font-size:10px; padding:3px 10px; background:var(--border); color:var(--text); border:none; border-radius:6px; cursor:pointer; font-family:'Sarabun',sans-serif;">✕ ล้างตัวกรอง</button>
+        </div>
         <!-- KPI Overview: 5 cards -->
         <div class="kpi-row" style="margin-bottom:10px">
           <div class="kpi" style="padding:10px 12px;"><div class="kpi-val" id="sa-kpi-revenue" style="color:var(--accent);font-size:16px;">฿0</div><div class="kpi-lbl" style="font-size:10px;">ยอดขายรวม (฿)</div></div>
@@ -2740,6 +2764,61 @@
     const SA_EDU_CODES = ['AAES','AAES-A','AAES-B','AGE 0-17Y','AGE 18-22Y','BACKTOSCHOOL','EDU-ONLINE','GNR - AAES','GNR - UNI','UFUND STUDENT','UFUND UNIDAYS','UNI','UNIDAYS','UNIVERSITY'];
     let saCurrentCatTab = 'all';
     let saHeroModels = new Set();
+    let saDateStart = null; // YYYY-MM-DD string
+    let saDateEnd = null;
+
+    // Date range filter functions
+    window.applySADateFilter = function() {
+      saDateStart = document.getElementById('sa-date-start').value || null;
+      saDateEnd = document.getElementById('sa-date-end').value || null;
+      updateSADateDisplay();
+      renderSalesAnalysis();
+    };
+
+    window.setSAMonth = function(m, btn) {
+      // Toggle month button
+      let isActive = btn.classList.contains('active');
+      document.getElementById('sa-month-btns').querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
+      if (isActive) {
+        // Deactivate → clear month filter
+        saDateStart = null; saDateEnd = null;
+        document.getElementById('sa-date-start').value = '';
+        document.getElementById('sa-date-end').value = '';
+      } else {
+        btn.classList.add('active');
+        // Set date range for this month using current year from data or filter
+        let yr = state.selectedYear !== 'all' ? parseInt(state.selectedYear) : new Date().getFullYear();
+        let ms = String(m).padStart(2, '0');
+        let lastDay = new Date(yr, m, 0).getDate();
+        saDateStart = `${yr}-${ms}-01`;
+        saDateEnd = `${yr}-${ms}-${String(lastDay).padStart(2,'0')}`;
+        document.getElementById('sa-date-start').value = saDateStart;
+        document.getElementById('sa-date-end').value = saDateEnd;
+      }
+      updateSADateDisplay();
+      renderSalesAnalysis();
+    };
+
+    window.clearSADateFilter = function() {
+      saDateStart = null; saDateEnd = null;
+      document.getElementById('sa-date-start').value = '';
+      document.getElementById('sa-date-end').value = '';
+      document.getElementById('sa-month-btns').querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
+      updateSADateDisplay();
+      renderSalesAnalysis();
+    };
+
+    function updateSADateDisplay() {
+      let el = document.getElementById('sa-date-display');
+      if (saDateStart && saDateEnd) {
+        let fmt = d => { let [y,m,dd] = d.split('-'); return `${dd}/${m}/${y}`; };
+        el.textContent = `${fmt(saDateStart)} - ${fmt(saDateEnd)}`;
+        el.style.color = 'var(--accent)';
+      } else {
+        el.textContent = 'ทั้งหมด';
+        el.style.color = 'var(--sub)';
+      }
+    }
 
     function classifyCustomer(code) {
       if (!code) return 'ลูกค้าทั่วไป';
@@ -2754,6 +2833,8 @@
       let month = opts.month || state.selectedMonth;
       let year = opts.year || state.selectedYear;
       let cat = opts.cat || state.selectedCat;
+      let dStart = opts.dateStart !== undefined ? opts.dateStart : saDateStart;
+      let dEnd = opts.dateEnd !== undefined ? opts.dateEnd : saDateEnd;
       return salesArr.filter(s => {
         let pt = (s.productType || '').toUpperCase().trim();
         if (pt !== 'INVENTORY ITEM') return false;
@@ -2763,9 +2844,14 @@
           if (!sub.includes('AIRPODS')) return false;
         }
         if (branch !== 'all' && s.branch !== branch) return false;
-        if (month !== 'all' && s.month !== parseInt(month)) return false;
-        if (year !== 'all' && s.year !== parseInt(year)) return false;
         if (cat !== 'all' && (s.category || '').trim().toLowerCase() !== cat.trim().toLowerCase()) return false;
+        // Date range filter takes priority over month/year
+        if (dStart && dEnd && s.date) {
+          if (s.date < dStart || s.date > dEnd) return false;
+        } else {
+          if (month !== 'all' && s.month !== parseInt(month)) return false;
+          if (year !== 'all' && s.year !== parseInt(year)) return false;
+        }
         return true;
       });
     }
