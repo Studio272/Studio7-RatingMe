@@ -9,6 +9,12 @@
     "cloudtest01cloud1234": "cloud1234",
     "newuser01": "pass1234"
   },
-  "pending": {},
-  "reset_requests": []
+  "pending": {
+    "10272": "10272",
+    "test01": "test01",
+    "teast02": "test02"
+  },
+  "reset_requests": [
+    "10562"
+  ]
 }
