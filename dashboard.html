@@ -1330,16 +1330,16 @@
 
       <div class="tab-container">
         <div class="tab-nav">
-          <button class="tab-btn active" onclick="switchTab('sales',this)"><span>📊</span> ข้อมูลยอดขาย /
-            Traffic</button>
+          <button class="tab-btn active" onclick="switchTab('sales',this)"><span>📈</span> Traffic / Conversion</button>
+          <button class="tab-btn" onclick="switchTab('salesAnalysis',this)"><span>💰</span> ข้อมูลยอดขาย</button>
           <button class="tab-btn" onclick="switchTab('rating',this)"><span>⭐</span> Rating Demo</button>
           <button class="tab-btn" onclick="switchTab('staff',this)"><span>👥</span> ตารางรวมผลงาน (รายบุคคล)</button>
         </div>
       </div>
 
       <div id="tab-sales" class="tab-pane active">
-        <div class="sec" style="margin-top:0"><span class="sec-badge badge-blue">ข้อมูลยอดขาย / Traffic</span>
-          <div class="sec-line"></div><span class="sec-sub" id="sales-filename">ข้อมูลยอดขาย / Traffic</span>
+        <div class="sec" style="margin-top:0"><span class="sec-badge badge-blue">Traffic / Conversion</span>
+          <div class="sec-line"></div><span class="sec-sub" id="sales-filename">Traffic / Conversion</span>
         </div>
 
         <div class="kpi-row" style="margin-bottom:14px">
@@ -1503,6 +1503,84 @@
         <div class="panel" style="overflow-y:auto; max-height:500px; padding-right:15px;">
           <div class="panel-title"><span class="ptag" style="background:#7c3aed"></span> ยอดขายตามหมวดสินค้า (Drill-down แบบละเอียด)</div>
           <div id="catListAccordion"></div>
+        </div>
+      </div>
+
+      <!-- ===== NEW: Sales Analysis Tab ===== -->
+      <div id="tab-salesAnalysis" class="tab-pane">
+        <div class="sec" style="margin-top:0"><span class="sec-badge badge-green">💰 ข้อมูลยอดขาย</span>
+          <div class="sec-line"></div><span class="sec-sub">Sales Analysis (Inventory Item Only)</span>
+        </div>
+
+        <!-- KPI Overview -->
+        <div class="kpi-row" style="margin-bottom:14px">
+          <div class="kpi"><div class="kpi-val" id="sa-kpi-revenue" style="color:var(--accent)">฿0</div><div class="kpi-lbl">ยอดขายรวม (฿)</div></div>
+          <div class="kpi"><div class="kpi-val" id="sa-kpi-units" style="color:var(--green)">0</div><div class="kpi-lbl">จำนวนเครื่อง (Unit)</div></div>
+          <div class="kpi"><div class="kpi-val" id="sa-kpi-avg" style="color:var(--purple)">฿0</div><div class="kpi-lbl">ราคาเฉลี่ย/เครื่อง</div></div>
+          <div class="kpi"><div class="kpi-val" id="sa-kpi-days" style="color:var(--amber)">0</div><div class="kpi-lbl">จำนวนวัน</div></div>
+        </div>
+
+        <!-- Charts Row: Monthly + Models Pie -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div class="chart-card">
+            <div class="chart-title">📈 ยอดขายรายเดือน (Monthly Sales)</div>
+            <canvas id="sa-chart-monthly" height="280"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">🏆 รุ่นยอดนิยม (Top Models)</div>
+            <canvas id="sa-chart-models" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Charts Row: Customer Segment -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+          <div class="chart-card">
+            <div class="chart-title">👥 สัดส่วนลูกค้า (Customer Segment)</div>
+            <canvas id="sa-chart-customer" height="280"></canvas>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">📊 สัดส่วนหมวดหมู่ (Category Mix)</div>
+            <canvas id="sa-chart-catmix" height="280"></canvas>
+          </div>
+        </div>
+
+        <!-- Model Breakdown Section -->
+        <div class="sec"><span class="sec-badge badge-purple">📋 ข้อมูลยอดขายแยกตามรุ่น</span>
+          <div class="sec-line"></div>
+        </div>
+
+        <!-- Category Sub-tabs -->
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+          <button class="t-tab-btn active" onclick="switchSalesModelTab('all', this)">ทั้งหมด</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('Mac', this)">Mac</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('iPad', this)">iPad</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('iPhone', this)">iPhone</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('Apple Watch', this)">Apple Watch</button>
+          <button class="t-tab-btn" onclick="switchSalesModelTab('AirPods', this)">AirPods</button>
+        </div>
+
+        <!-- iPhone Hero Selector (hidden by default) -->
+        <div id="sa-hero-selector" style="display:none; margin-bottom:12px; padding:10px 14px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
+          <div style="font-weight:600; margin-bottom:6px; color:var(--text); font-size:13px;">🎯 เลือกรุ่น Hero iPhone:</div>
+          <div id="sa-hero-checkboxes" style="display:flex; flex-wrap:wrap; gap:8px; font-size:12px;"></div>
+        </div>
+
+        <!-- Model Table -->
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>หมวดหมู่</th>
+                <th>รุ่น / Model</th>
+                <th class="text-r">จำนวน (Unit)</th>
+                <th class="text-r">ยอดขาย (฿)</th>
+                <th class="text-r">ราคาเฉลี่ย</th>
+                <th class="text-r">สัดส่วน %</th>
+              </tr>
+            </thead>
+            <tbody id="sa-model-table"></tbody>
+          </table>
         </div>
       </div>
 
@@ -1728,6 +1806,7 @@
       if (cId === 54) return "iPad";
       if (cId === 48) return "iPhone";
       if (cId === 72) return "Apple Watch";
+      if (cId === 162) return "AirPods";
 
       // Check catName directly first (exact product category)
       let cn = (catName || '').trim().toLowerCase();
@@ -2256,6 +2335,7 @@
 
       const catIdKey = getCol(['category (id)', 'category id', 'cat_id']);
       const prodTypeKey = getCol(['product type', 'product_type', 'item type', 'ประเภทสินค้า', 'ประเภท']);
+      const customerCodeKey = getCol(['customer (code)', 'customer code', 'customer_code', 'รหัสลูกค้า']);
       const transactionTypeKey = getCol(['transaction type', 'transaction_type', 'transaction', 'ประเภทรายการ']) || headers[14]; // Fallback to explicitly Col O
 
       if (isSales) state.fileNames.sales = filename;
@@ -2353,7 +2433,8 @@
           category: groupCat, subCategory: rawCat || rawSubCat || 'Other', productName: String(row[productKey] || '').trim(),
           rating: getVal(row[ratingKey]), topic: isRating ? (String(row[topicKey] || '').trim() || topicStr || 'อื่นๆ') : String(row[topicKey] || 'อื่นๆ').trim(),
           feedback1: String(row[fb1Key] || '').trim(), feedback2: String(row[fb2Key] || '').trim(),
-          catId: String(row[catIdKey] || '').trim(), productType: String(row[prodTypeKey] || '').trim()
+          catId: String(row[catIdKey] || '').trim(), productType: String(row[prodTypeKey] || '').trim(),
+          customerCode: String(row[customerCodeKey] || '').trim()
         };
 
         if (obj.staffName === 'ไม่ระบุ' && obj.staffId !== '-') obj.staffName = 'รหัส ' + obj.staffId;
@@ -2647,6 +2728,241 @@
     document.getElementById('monthFilter').addEventListener('change', (e) => { state.selectedMonth = e.target.value; renderDashboard(); });
     document.getElementById('yearFilter').addEventListener('change', (e) => { state.selectedYear = e.target.value; renderDashboard(); });
     document.getElementById('catFilter').addEventListener('change', (e) => { state.selectedCat = e.target.value; renderDashboard(); });
+
+    // ===== SALES ANALYSIS TAB LOGIC =====
+    const SA_VALID_CATS = ['53', '54', '48', '72', '162'];
+    const SA_EDU_CODES = ['AAES','AAES-A','AAES-B','AGE 0-17Y','AGE 18-22Y','BACKTOSCHOOL','EDU-ONLINE','GNR - AAES','GNR - UNI','UFUND STUDENT','UFUND UNIDAYS','UNI','UNIDAYS','UNIVERSITY'];
+    let saCurrentCatTab = 'all';
+    let saHeroModels = new Set();
+
+    function classifyCustomer(code) {
+      if (!code) return 'ลูกค้าทั่วไป';
+      let c = code.toUpperCase().trim();
+      if (c === 'CORPORATE') return 'บริษัท';
+      if (SA_EDU_CODES.includes(c)) return 'นักเรียน/นักศึกษา';
+      return 'ลูกค้าทั่วไป';
+    }
+
+    function getSalesAnalysisData() {
+      let filtered = state.sales.filter(s => {
+        let pt = (s.productType || '').toUpperCase().trim();
+        if (pt !== 'INVENTORY ITEM') return false;
+        if (!SA_VALID_CATS.includes(s.catId)) return false;
+        // AirPods: catId=162, also check subCategory contains AIRPODS
+        if (s.catId === '162') {
+          let sub = (s.subCategory || '').toUpperCase();
+          if (!sub.includes('AIRPODS')) return false;
+        }
+        if (state.selectedBranch !== 'all' && s.branch !== state.selectedBranch) return false;
+        if (state.selectedMonth !== 'all' && s.month !== parseInt(state.selectedMonth)) return false;
+        if (state.selectedYear !== 'all' && s.year !== parseInt(state.selectedYear)) return false;
+        return true;
+      });
+      return filtered;
+    }
+
+    function getModelName(s) {
+      let cat = s.category;
+      let sub = (s.subCategory || '').trim();
+      let prod = (s.productName || '').trim();
+
+      if (cat === 'Mac' || cat === 'Apple Watch' || cat === 'AirPods') {
+        return sub || prod || cat;
+      }
+      if (cat === 'iPad') {
+        let pLow = (sub + ' ' + prod).toLowerCase();
+        if (pLow.includes('ipad air')) return 'iPad Air';
+        if (pLow.includes('ipad pro')) return 'iPad Pro';
+        if (pLow.includes('ipad mini')) return 'iPad Mini';
+        return 'iPad';
+      }
+      if (cat === 'iPhone') {
+        return sub || prod || 'iPhone';
+      }
+      return sub || prod || cat;
+    }
+
+    function renderSalesAnalysis() {
+      let data = getSalesAnalysisData();
+      let totalRev = 0, totalUnits = 0;
+      let datesSet = new Set();
+      let monthlyMap = {};
+      let modelMap = {};
+      let customerMap = { 'ลูกค้าทั่วไป': 0, 'นักเรียน/นักศึกษา': 0, 'บริษัท': 0 };
+      let catMixMap = {};
+
+      data.forEach(s => {
+        totalRev += s.price;
+        totalUnits += s.qty;
+        if (s.date) datesSet.add(s.date);
+
+        // Monthly
+        let mk = `${s.year}-${String(s.month).padStart(2,'0')}`;
+        if (!monthlyMap[mk]) monthlyMap[mk] = { rev: 0, units: 0 };
+        monthlyMap[mk].rev += s.price;
+        monthlyMap[mk].units += s.qty;
+
+        // Models
+        let mName = getModelName(s);
+        if (!modelMap[mName]) modelMap[mName] = { qty: 0, rev: 0, cat: s.category };
+        modelMap[mName].qty += s.qty;
+        modelMap[mName].rev += s.price;
+
+        // Customer
+        let cSeg = classifyCustomer(s.customerCode);
+        customerMap[cSeg] = (customerMap[cSeg] || 0) + s.qty;
+
+        // Category Mix
+        catMixMap[s.category] = (catMixMap[s.category] || 0) + s.qty;
+      });
+
+      // KPIs
+      document.getElementById('sa-kpi-revenue').textContent = '฿' + totalRev.toLocaleString();
+      document.getElementById('sa-kpi-units').textContent = totalUnits.toLocaleString();
+      document.getElementById('sa-kpi-avg').textContent = totalUnits > 0 ? '฿' + Math.round(totalRev / totalUnits).toLocaleString() : '฿0';
+      document.getElementById('sa-kpi-days').textContent = datesSet.size;
+
+      // Monthly Line Chart
+      let mKeys = Object.keys(monthlyMap).sort();
+      let mLabels = mKeys.map(k => { let [y,m] = k.split('-'); return `${['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'][parseInt(m)]} ${y}`; });
+      if (charts['sa-monthly']) charts['sa-monthly'].destroy();
+      charts['sa-monthly'] = new Chart(document.getElementById('sa-chart-monthly'), {
+        type: 'line',
+        data: {
+          labels: mLabels,
+          datasets: [
+            { label: 'ยอดขาย (฿)', data: mKeys.map(k => monthlyMap[k].rev), borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3, yAxisID: 'y' },
+            { label: 'จำนวน (Unit)', data: mKeys.map(k => monthlyMap[k].units), borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', fill: false, tension: 0.3, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, plugins: { legend: { position: 'top' } },
+          scales: {
+            y: { position: 'left', ticks: { callback: v => '฿' + (v/1e6).toFixed(1) + 'M' } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => v + ' u' } }
+          }
+        }
+      });
+
+      // Top Models Pie
+      let modelArr = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty).slice(0, 10);
+      let pieColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6','#f97316','#64748b'];
+      if (charts['sa-models']) charts['sa-models'].destroy();
+      charts['sa-models'] = new Chart(document.getElementById('sa-chart-models'), {
+        type: 'doughnut',
+        data: {
+          labels: modelArr.map(m => m[0]),
+          datasets: [{ data: modelArr.map(m => m[1].qty), backgroundColor: pieColors }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } } }
+      });
+
+      // Customer Segment Pie
+      if (charts['sa-customer']) charts['sa-customer'].destroy();
+      charts['sa-customer'] = new Chart(document.getElementById('sa-chart-customer'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(customerMap),
+          datasets: [{ data: Object.values(customerMap), backgroundColor: ['#6366f1','#f59e0b','#10b981'] }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } } }
+      });
+
+      // Category Mix Pie
+      let catColors = { 'Mac': '#6366f1', 'iPad': '#f59e0b', 'iPhone': '#10b981', 'Apple Watch': '#ef4444', 'AirPods': '#8b5cf6' };
+      if (charts['sa-catmix']) charts['sa-catmix'].destroy();
+      charts['sa-catmix'] = new Chart(document.getElementById('sa-chart-catmix'), {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(catMixMap),
+          datasets: [{ data: Object.values(catMixMap), backgroundColor: Object.keys(catMixMap).map(c => catColors[c] || '#64748b') }]
+        },
+        options: { responsive: true, plugins: { legend: { position: 'right', labels: { font: { size: 12 } } } } }
+      });
+
+      // Build iPhone model list for Hero selector
+      buildHeroSelector(data);
+
+      // Render Model Table
+      renderSalesModelTable(data, totalUnits);
+    }
+
+    function buildHeroSelector(data) {
+      let iPhoneModels = new Set();
+      data.filter(s => s.category === 'iPhone').forEach(s => {
+        let m = getModelName(s);
+        if (m) iPhoneModels.add(m);
+      });
+      let container = document.getElementById('sa-hero-checkboxes');
+      container.innerHTML = '';
+      [...iPhoneModels].sort().forEach(m => {
+        let checked = saHeroModels.has(m) ? 'checked' : '';
+        container.innerHTML += `<label style="display:flex;align-items:center;gap:4px;padding:3px 8px;background:var(--bg);border-radius:6px;cursor:pointer;border:1px solid var(--border);">
+          <input type="checkbox" ${checked} onchange="toggleHeroModel('${m.replace(/'/g,"\\'")}')" style="accent-color:var(--accent);"> ${m}
+        </label>`;
+      });
+    }
+
+    window.toggleHeroModel = function(m) {
+      if (saHeroModels.has(m)) saHeroModels.delete(m);
+      else saHeroModels.add(m);
+      renderSalesModelTable(getSalesAnalysisData(), null);
+    };
+
+    function renderSalesModelTable(data, overrideTotalUnits) {
+      let filtered = data;
+      if (saCurrentCatTab !== 'all') {
+        filtered = filtered.filter(s => s.category === saCurrentCatTab);
+      }
+
+      // Group by model
+      let modelMap = {};
+      let totalUnits = 0;
+      filtered.forEach(s => {
+        let mName = getModelName(s);
+
+        // iPhone: group into Hero / N-Hero
+        if (s.category === 'iPhone' && saCurrentCatTab === 'iPhone') {
+          if (saHeroModels.size > 0) {
+            mName = saHeroModels.has(mName) ? '🌟 Hero: ' + mName : 'N- ' + mName;
+          }
+        }
+
+        if (!modelMap[mName]) modelMap[mName] = { qty: 0, rev: 0, cat: s.category };
+        modelMap[mName].qty += s.qty;
+        modelMap[mName].rev += s.price;
+        totalUnits += s.qty;
+      });
+
+      let rows = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty);
+      let tb = document.getElementById('sa-model-table');
+      let html = '';
+      rows.forEach((r, i) => {
+        let pct = totalUnits > 0 ? ((r[1].qty / totalUnits) * 100).toFixed(1) : '0.0';
+        let avg = r[1].qty > 0 ? Math.round(r[1].rev / r[1].qty).toLocaleString() : '0';
+        let catBadge = {'Mac':'badge-blue','iPad':'badge-amber','iPhone':'badge-green','Apple Watch':'badge-red','AirPods':'badge-purple'}[r[1].cat] || '';
+        html += `<tr>
+          <td>${i+1}</td>
+          <td><span class="sec-badge ${catBadge}" style="font-size:10px;padding:2px 8px;">${r[1].cat}</span></td>
+          <td style="font-weight:600;">${r[0]}</td>
+          <td class="text-r">${r[1].qty.toLocaleString()}</td>
+          <td class="text-r">฿${r[1].rev.toLocaleString()}</td>
+          <td class="text-r">฿${avg}</td>
+          <td class="text-r">${pct}%</td>
+        </tr>`;
+      });
+      if (rows.length === 0) html = '<tr><td colspan="7" style="text-align:center;color:var(--sub);">ไม่มีข้อมูล</td></tr>';
+      tb.innerHTML = html;
+    }
+
+    window.switchSalesModelTab = function(cat, btn) {
+      saCurrentCatTab = cat;
+      btn.parentElement.querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Show/hide Hero selector for iPhone
+      document.getElementById('sa-hero-selector').style.display = cat === 'iPhone' ? 'block' : 'none';
+      renderSalesModelTable(getSalesAnalysisData(), null);
+    };
 
     function renderDashboard() {
       const tMonth = state.selectedMonth === 'all' ? null : parseInt(state.selectedMonth);
@@ -3169,6 +3485,11 @@
       // Finally, trigger the traffic dashboard
       if(state.sales && state.sales.length > 0) {
         processTrafficData(curSales, state.sales);
+      }
+
+      // Render Sales Analysis tab
+      if(state.sales && state.sales.length > 0) {
+        renderSalesAnalysis();
       }
     }
 
