@@ -1605,6 +1605,8 @@
                 <th class="text-r" style="font-size:11px;">ยอดขาย (฿)</th>
                 <th class="text-r" style="font-size:11px;">เฉลี่ย</th>
                 <th class="text-r" style="font-size:11px;">สัดส่วน</th>
+                <th class="text-r" style="font-size:10px;color:#10b981;">MoM%</th>
+                <th class="text-r" style="font-size:10px;color:#6366f1;">YoY%</th>
               </tr>
             </thead>
             <tbody id="sa-model-table"></tbody>
@@ -2914,20 +2916,35 @@
       // Previous period for MoM
       let pMonth = state.selectedMonth !== 'all' ? (parseInt(state.selectedMonth) === 1 ? '12' : String(parseInt(state.selectedMonth) - 1)) : 'all';
       let pYearMoM = (state.selectedMonth !== 'all' && parseInt(state.selectedMonth) === 1 && state.selectedYear !== 'all') ? String(parseInt(state.selectedYear) - 1) : state.selectedYear;
-      let momData = getSAFiltered(state.sales, { month: pMonth, year: pYearMoM });
+      // For date range: shift by 1 month
+      let momOpts = { month: pMonth, year: pYearMoM };
+      if (saDateStart && saDateEnd) {
+        let ds = new Date(saDateStart), de = new Date(saDateEnd);
+        let diff = de - ds;
+        let pds = new Date(ds.getTime() - diff - 86400000);
+        let pde = new Date(ds.getTime() - 86400000);
+        momOpts = { dateStart: pds.toISOString().slice(0,10), dateEnd: pde.toISOString().slice(0,10) };
+      }
+      let momData = getSAFiltered(state.sales, momOpts);
 
       // Previous period for YoY
-      let pYearYoY = state.selectedYear !== 'all' ? String(parseInt(state.selectedYear) - 1) : 'all';
-      let yoyData = getSAFiltered(state.sales, { year: pYearYoY });
+      let yoyOpts = { year: state.selectedYear !== 'all' ? String(parseInt(state.selectedYear) - 1) : 'all' };
+      if (saDateStart && saDateEnd) {
+        let yds = saDateStart.replace(/^\d{4}/, String(parseInt(saDateStart.slice(0,4)) - 1));
+        let yde = saDateEnd.replace(/^\d{4}/, String(parseInt(saDateEnd.slice(0,4)) - 1));
+        yoyOpts = { dateStart: yds, dateEnd: yde };
+      }
+      let yoyData = getSAFiltered(state.sales, yoyOpts);
 
       let totalRev = 0, totalUnits = 0;
-      let momRev = 0, momUnits = 0;
-      let yoyRev = 0, yoyUnits = 0;
+      let momRev = 0, momUnits = 0, yoyRev = 0, yoyUnits = 0;
       let datesSet = new Set();
       let monthlyMap = {};
-      let modelMap = {};
+      let modelMap = {}, momModelMap = {}, yoyModelMap = {};
       let customerMap = { 'ลูกค้าทั่วไป': 0, 'นักเรียน/นักศึกษา': 0, 'บริษัท': 0 };
-      let catMixMap = {};
+      let momCustMap = { 'ลูกค้าทั่วไป': 0, 'นักเรียน/นักศึกษา': 0, 'บริษัท': 0 };
+      let yoyCustMap = { 'ลูกค้าทั่วไป': 0, 'นักเรียน/นักศึกษา': 0, 'บริษัท': 0 };
+      let catMixMap = {}, momCatMap = {}, yoyCatMap = {};
 
       curData.forEach(s => {
         totalRev += s.price; totalUnits += s.qty;
@@ -2941,8 +2958,30 @@
         customerMap[classifyCustomer(s.customerCode)] += s.qty;
         catMixMap[s.category] = (catMixMap[s.category] || 0) + s.qty;
       });
-      momData.forEach(s => { momRev += s.price; momUnits += s.qty; });
-      yoyData.forEach(s => { yoyRev += s.price; yoyUnits += s.qty; });
+      // MoM aggregation
+      momData.forEach(s => {
+        momRev += s.price; momUnits += s.qty;
+        let mName = getModelName(s);
+        if (!momModelMap[mName]) momModelMap[mName] = { qty: 0, rev: 0 };
+        momModelMap[mName].qty += s.qty; momModelMap[mName].rev += s.price;
+        momCustMap[classifyCustomer(s.customerCode)] += s.qty;
+        momCatMap[s.category] = (momCatMap[s.category] || 0) + s.qty;
+      });
+      // YoY aggregation
+      yoyData.forEach(s => {
+        yoyRev += s.price; yoyUnits += s.qty;
+        let mName = getModelName(s);
+        if (!yoyModelMap[mName]) yoyModelMap[mName] = { qty: 0, rev: 0 };
+        yoyModelMap[mName].qty += s.qty; yoyModelMap[mName].rev += s.price;
+        yoyCustMap[classifyCustomer(s.customerCode)] += s.qty;
+        yoyCatMap[s.category] = (yoyCatMap[s.category] || 0) + s.qty;
+      });
+
+      // Store comparison maps globally for model table
+      window._saMomModelMap = momModelMap;
+      window._saYoyModelMap = yoyModelMap;
+      window._saMomData = momData;
+      window._saYoyData = yoyData;
 
       let revMoM = calcChange(totalRev, momRev);
       let revYoY = calcChange(totalRev, yoyRev);
@@ -2951,6 +2990,7 @@
 
       let chgColor = v => parseFloat(v) >= 0 ? '#10b981' : '#ef4444';
       let chgArrow = v => parseFloat(v) >= 0 ? '▲' : '▼';
+      let chgBadge = (mom, yoy) => `<span style="font-size:9px;color:${chgColor(mom)};">(MoM ${mom}%)</span> <span style="font-size:9px;color:${chgColor(yoy)};">(YoY ${yoy}%)</span>`;
 
       // KPIs with YoY/MoM
       let chgHtml = (mom, yoy) => `<div style="font-size:9px;margin-top:3px;line-height:1.3;"><span style="color:${chgColor(mom)}">${chgArrow(mom)}MoM ${mom}%</span> <span style="color:${chgColor(yoy)}">${chgArrow(yoy)}YoY ${yoy}%</span></div>`;
@@ -3000,9 +3040,12 @@
         }
       });
 
-      // Top Models Pie
+      // 1. Top Models Pie + YoY/MoM in title
       let modelArr = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty).slice(0, 8);
       let pieColors = ['#6366f1','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#14b8a6'];
+      let modelTotalMoM = calcChange(totalUnits, momUnits);
+      let modelTotalYoY = calcChange(totalUnits, yoyUnits);
+      document.getElementById('sa-chart-models').parentElement.querySelector('.chart-title').innerHTML = `🏆 รุ่นยอดนิยม ${chgBadge(modelTotalMoM, modelTotalYoY)}`;
       if (charts['sa-models']) charts['sa-models'].destroy();
       charts['sa-models'] = new Chart(document.getElementById('sa-chart-models'), {
         type: 'doughnut',
@@ -3011,7 +3054,10 @@
         plugins: [pctPlugin]
       });
 
-      // Customer Segment Pie
+      // 2. Customer Segment Pie + YoY/MoM
+      let custTotalMoM = calcChange(totalUnits, momUnits);
+      let custTotalYoY = calcChange(totalUnits, yoyUnits);
+      document.getElementById('sa-chart-customer').parentElement.querySelector('.chart-title').innerHTML = `👥 สัดส่วนลูกค้า ${chgBadge(custTotalMoM, custTotalYoY)}`;
       if (charts['sa-customer']) charts['sa-customer'].destroy();
       charts['sa-customer'] = new Chart(document.getElementById('sa-chart-customer'), {
         type: 'doughnut',
@@ -3020,8 +3066,12 @@
         plugins: [pctPlugin]
       });
 
-      // Category Mix Pie
+      // 3. Category Mix Pie + YoY/MoM
       let catColors = { 'Mac':'#6366f1','iPad':'#f59e0b','iPhone':'#10b981','Apple Watch':'#ef4444','AirPods':'#8b5cf6' };
+      let catTotalCur = Object.values(catMixMap).reduce((a,b)=>a+b, 0);
+      let catTotalMom = Object.values(momCatMap).reduce((a,b)=>a+b, 0);
+      let catTotalYoy = Object.values(yoyCatMap).reduce((a,b)=>a+b, 0);
+      document.getElementById('sa-chart-catmix').parentElement.querySelector('.chart-title').innerHTML = `📊 หมวดหมู่ ${chgBadge(calcChange(catTotalCur, catTotalMom), calcChange(catTotalCur, catTotalYoy))}`;
       if (charts['sa-catmix']) charts['sa-catmix'].destroy();
       charts['sa-catmix'] = new Chart(document.getElementById('sa-chart-catmix'), {
         type: 'doughnut',
@@ -3076,16 +3126,31 @@
         if (saHeroModels.has(subK)) heroQty += s.qty;
         else nHeroQty += s.qty;
       });
+
+      // MoM/YoY for Hero
+      let momHero = 0, yoyHero = 0;
+      (window._saMomData || []).filter(s => s.category === 'iPhone').forEach(s => {
+        let subK = (s.subCatK || '').trim();
+        if (saHeroModels.has(subK)) momHero += s.qty;
+      });
+      (window._saYoyData || []).filter(s => s.category === 'iPhone').forEach(s => {
+        let subK = (s.subCatK || '').trim();
+        if (saHeroModels.has(subK)) yoyHero += s.qty;
+      });
+      let heroMoM = calcChange(heroQty, momHero);
+      let heroYoY = calcChange(heroQty, yoyHero);
+      let chgC = v => parseFloat(v) >= 0 ? '#10b981' : '#ef4444';
+
       if (charts['sa-hero']) charts['sa-hero'].destroy();
       charts['sa-hero'] = new Chart(canvas, {
         type: 'doughnut',
         data: {
-          labels: ['🌟 Hero', 'N- (Non-Hero)'],
+          labels: [`🌟 Hero (MoM ${heroMoM}%, YoY ${heroYoY}%)`, 'N- (Non-Hero)'],
           datasets: [{ data: [heroQty, nHeroQty], backgroundColor: ['#6366f1', '#94a3b8'] }]
         },
         options: {
           responsive: true, maintainAspectRatio: true,
-          plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, boxWidth: 10 } } }
+          plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, boxWidth: 10 } } }
         },
         plugins: [{ id: 'heroPct', afterDatasetsDraw(chart) {
           const { ctx } = chart;
@@ -3107,6 +3172,29 @@
       if (saCurrentCatTab !== 'all') {
         filtered = filtered.filter(s => s.category === saCurrentCatTab);
       }
+
+      // Build MoM/YoY model maps with same grouping
+      let momFiltered = (window._saMomData || []);
+      let yoyFiltered = (window._saYoyData || []);
+      if (saCurrentCatTab !== 'all') {
+        momFiltered = momFiltered.filter(s => s.category === saCurrentCatTab);
+        yoyFiltered = yoyFiltered.filter(s => s.category === saCurrentCatTab);
+      }
+      let momMap = {}, yoyMap = {};
+      let buildCompMap = (arr, map) => {
+        arr.forEach(s => {
+          let mName = getModelName(s);
+          if (s.category === 'iPhone' && saCurrentCatTab === 'iPhone' && saHeroModels.size > 0) {
+            let subK = (s.subCatK || '').trim();
+            mName = saHeroModels.has(subK) ? '🌟 Hero: ' + subK : 'N- ' + subK;
+          }
+          if (!map[mName]) map[mName] = { qty: 0, rev: 0 };
+          map[mName].qty += s.qty; map[mName].rev += s.price;
+        });
+      };
+      buildCompMap(momFiltered, momMap);
+      buildCompMap(yoyFiltered, yoyMap);
+
       let modelMap = {};
       let totalUnits = 0;
       filtered.forEach(s => {
@@ -3121,11 +3209,14 @@
       });
       let rows = Object.entries(modelMap).sort((a,b) => b[1].qty - a[1].qty);
       let tb = document.getElementById('sa-model-table');
+      let chgC = v => parseFloat(v) >= 0 ? '#10b981' : '#ef4444';
       let html = '';
       rows.forEach((r, i) => {
         let pct = totalUnits > 0 ? ((r[1].qty / totalUnits) * 100).toFixed(1) : '0.0';
         let avg = r[1].qty > 0 ? Math.round(r[1].rev / r[1].qty).toLocaleString() : '0';
         let catBadge = {'Mac':'badge-blue','iPad':'badge-amber','iPhone':'badge-green','Apple Watch':'badge-red','AirPods':'badge-purple'}[r[1].cat] || '';
+        let mMoM = calcChange(r[1].qty, (momMap[r[0]]||{}).qty || 0);
+        let mYoY = calcChange(r[1].qty, (yoyMap[r[0]]||{}).qty || 0);
         html += `<tr>
           <td>${i+1}</td>
           <td><span class="sec-badge ${catBadge}" style="font-size:10px;padding:2px 8px;">${r[1].cat}</span></td>
@@ -3134,9 +3225,11 @@
           <td class="text-r">฿${r[1].rev.toLocaleString()}</td>
           <td class="text-r">฿${avg}</td>
           <td class="text-r">${pct}%</td>
+          <td class="text-r" style="font-size:10px;color:${chgC(mMoM)};">${mMoM}%</td>
+          <td class="text-r" style="font-size:10px;color:${chgC(mYoY)};">${mYoY}%</td>
         </tr>`;
       });
-      if (rows.length === 0) html = '<tr><td colspan="7" style="text-align:center;color:var(--sub);">ไม่มีข้อมูล</td></tr>';
+      if (rows.length === 0) html = '<tr><td colspan="9" style="text-align:center;color:var(--sub);">ไม่มีข้อมูล</td></tr>';
       tb.innerHTML = html;
     }
 
