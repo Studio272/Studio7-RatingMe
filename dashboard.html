@@ -3122,9 +3122,23 @@
         let mr = 0, mi = 0, ms = {}, mrSum = 0, mrCt = 0, mf = [];
         sd.forEach(s => { mr += s.price; mi += s.qty; if (s.productName) ms[s.productName] = (ms[s.productName] || 0) + s.qty; });
         rd.forEach(r => { if (r.rating > 0) { mrSum += r.rating; mrCt++; } if (r.feedback1 || r.feedback2) mf.push(r); });
+
+        // Calculate unique working days from both sales and demo records
+        let workDatesSet = new Set();
+        sd.forEach(s => { if (s.date) workDatesSet.add(s.date); });
+        rd.forEach(r => { if (r.date) workDatesSet.add(r.date); });
+        let workDays = workDatesSet.size || 1;
+
+        // Items sold + avg per day
+        let itemsPerDay = (mi / workDays).toFixed(1);
+        document.getElementById('mkpi-items').innerHTML = mi.toLocaleString() + ' <span style="font-size:13px;color:var(--sub);font-weight:500;">(' + itemsPerDay + '/วัน)</span>';
+
+        // Demo count + avg per day + purchase rate
+        let demosPerDay = (rd.length / workDays).toFixed(1);
+        let buyRate = rd.length > 0 ? ((mi / rd.length) * 100).toFixed(1) : '0.0';
+        document.getElementById('mkpi-demo').innerHTML = rd.length + ' <span style="font-size:13px;color:var(--sub);font-weight:500;">(' + demosPerDay + '/วัน)</span><br><span style="font-size:12px;color:var(--accent);font-weight:600;">' + buyRate + '% ซื้อจริง</span>';
+
         document.getElementById('mkpi-rev').textContent = '฿' + mr.toLocaleString();
-        document.getElementById('mkpi-items').textContent = mi.toLocaleString();
-        document.getElementById('mkpi-demo').textContent = rd.length;
         document.getElementById('mkpi-rating').textContent = mrCt > 0 ? (mrSum / mrCt).toFixed(2) : '-';
 
         const lp = document.getElementById('modal-products'); lp.innerHTML = '';
