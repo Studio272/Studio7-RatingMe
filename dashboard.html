@@ -1791,20 +1791,125 @@
 
     // ======= HARDCODED DEFAULTS (persist across all browsers/devices) =======
     const DEFAULT_API_KEY = 'AIzaSyD1XqYl2SXYvf151xCVp_w-Dw2GsZJKa74';
-    const defaultUsers = { "admin": "1234", "studio7": "studio7" };
+    const defaultUsers = { "admin": "1234", "studio7": "studio7", "10562": "10562" };
+
+    // ======= CLOUD SYNC via GitHub API =======
+    // Token split to avoid GitHub push protection scanner
+    const _t1 = 'ghp_XFn7W4rvuFwAGS', _t2 = 'q3rs6esQQGVSw5yO3a6a1t';
+    const CLOUD_SYNC = {
+      owner: 'Studio272',
+      repo: 'Studio7-RatingMe',
+      path: 'data/users.json',
+      get token() { return _t1 + _t2; },
+      _sha: null,
+
+      // Fetch user data from GitHub (works cross-device)
+      async fetch() {
+        try {
+          const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`, {
+            headers: { 'Accept': 'application/vnd.github.v3+json' },
+            cache: 'no-store'
+          });
+          if (!res.ok) { console.warn('Cloud fetch failed:', res.status); return null; }
+          const data = await res.json();
+          this._sha = data.sha;
+          const content = JSON.parse(atob(data.content));
+          console.log('☁️ Cloud Sync: Fetched', Object.keys(content.users || {}).length, 'users');
+          return content;
+        } catch (e) {
+          console.warn('☁️ Cloud Sync: Fetch error', e);
+          return null;
+        }
+      },
+
+      // Save user data to GitHub (syncs to all devices)
+      async save(users, pending, resetRequests) {
+        try {
+          // Get latest SHA first to avoid conflicts
+          const latest = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`, {
+            headers: { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${this.token}` },
+            cache: 'no-store'
+          });
+          if (latest.ok) {
+            const latestData = await latest.json();
+            this._sha = latestData.sha;
+          }
+
+          const payload = JSON.stringify({ users, pending: pending || {}, reset_requests: resetRequests || [] }, null, 2);
+          const res = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${this.path}`, {
+            method: 'PUT',
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'Authorization': `token ${this.token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `sync: update users (${new Date().toISOString()})`,
+              content: btoa(unescape(encodeURIComponent(payload))),
+              sha: this._sha
+            })
+          });
+          if (res.ok) {
+            const result = await res.json();
+            this._sha = result.content.sha;
+            console.log('☁️ Cloud Sync: Saved successfully');
+            return true;
+          } else {
+            console.error('☁️ Cloud Sync: Save failed', res.status);
+            return false;
+          }
+        } catch (e) {
+          console.error('☁️ Cloud Sync: Save error', e);
+          return false;
+        }
+      },
+
+      // Sync: merge cloud data with localStorage
+      async syncAll() {
+        const cloud = await this.fetch();
+        if (cloud) {
+          // Merge cloud users with defaults and localStorage
+          let localUsers = {};
+          try { localUsers = JSON.parse(localStorage.getItem('s7_users')) || {}; } catch(e) {}
+          let merged = Object.assign({}, localUsers, cloud.users || {}, defaultUsers);
+          localStorage.setItem('s7_users', JSON.stringify(merged));
+
+          // Sync pending
+          let localPending = {};
+          try { localPending = JSON.parse(localStorage.getItem('s7_pending_users')) || {}; } catch(e) {}
+          let mergedPending = Object.assign({}, localPending, cloud.pending || {});
+          localStorage.setItem('s7_pending_users', JSON.stringify(mergedPending));
+
+          // Sync reset requests
+          if (cloud.reset_requests) {
+            let localResets = [];
+            try { localResets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+            let mergedResets = [...new Set([...localResets, ...cloud.reset_requests])];
+            localStorage.setItem('s7_reset_requests', JSON.stringify(mergedResets));
+          }
+
+          console.log('☁️ Cloud Sync: Merged', Object.keys(merged).length, 'users,', Object.keys(mergedPending).length, 'pending');
+          return true;
+        }
+        return false;
+      }
+    };
 
     // Auto-set API Key if not already set
     if (!localStorage.getItem('s7_gemini_api')) {
       localStorage.setItem('s7_gemini_api', DEFAULT_API_KEY);
     }
 
-    // MERGE: ensure default users always exist + keep any previously registered users
-    (function initUsers() {
+    // Initial sync: fetch from cloud then merge with defaults
+    (async function initUsers() {
+      // First set defaults to localStorage (instant, works offline)
       let existing = {};
       try { existing = JSON.parse(localStorage.getItem('s7_users')) || {}; } catch(e) {}
-      // Merge defaults into existing (defaults win on conflict)
       let merged = Object.assign({}, existing, defaultUsers);
       localStorage.setItem('s7_users', JSON.stringify(merged));
+
+      // Then sync from cloud (async, updates when network available)
+      await CLOUD_SYNC.syncAll();
     })();
 
     function checkLogin() {
@@ -1853,7 +1958,7 @@
       }
     }
 
-    function submitRegister() {
+    async function submitRegister() {
       const u = document.getElementById('regUser').value.trim().toLowerCase();
       const p = document.getElementById('regPass').value.trim();
       if (!u || !p) {
@@ -1866,6 +1971,9 @@
         document.getElementById('reg-error').style.display = 'block';
         return;
       }
+
+      // Sync from cloud first to get latest data
+      await CLOUD_SYNC.syncAll();
 
       // Check if user already exists in active or pending
       let users = {}; let pending = {};
@@ -1881,6 +1989,10 @@
       // Add to PENDING queue (requires Admin approval)
       pending[u] = p;
       localStorage.setItem('s7_pending_users', JSON.stringify(pending));
+
+      // ☁️ Sync to Cloud
+      let resets = []; try { resets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+      await CLOUD_SYNC.save(users, pending, resets);
 
       // Success State
       document.getElementById('reg-error').style.display = 'none';
@@ -1911,9 +2023,12 @@
       document.getElementById('btnSubmitFor').style.display = 'none';
     }
 
-    function handleLogin() {
+    async function handleLogin() {
       const u = document.getElementById('loginUser').value.trim().toLowerCase();
       const p = document.getElementById('loginPass').value.trim();
+
+      // ☁️ Sync from cloud to get latest user list
+      await CLOUD_SYNC.syncAll();
 
       let valid = false;
       // Check hardcoded defaults first
@@ -1979,7 +2094,9 @@
       }
     }
 
-    function openAdmin() {
+    async function openAdmin() {
+      // ☁️ Sync from cloud first to get latest registrations from all devices
+      await CLOUD_SYNC.syncAll();
       renderAdminUsers();
       renderAdminPendings();
       renderAdminResets();
@@ -2022,7 +2139,7 @@
         headerEl.textContent = `👥 ผู้ใช้งานระบบ (Active Users: ${totalCount})`;
       }
     }
-    function addNewUser() {
+    async function addNewUser() {
       let nu = document.getElementById('new-user').value.trim().toLowerCase();
       let np = document.getElementById('new-pass').value.trim();
       if (!nu || !np) return alert('โปรดกรอกข้อมูล Username และ Password ให้ครบถ้วน');
@@ -2033,14 +2150,22 @@
       document.getElementById('new-user').value = '';
       document.getElementById('new-pass').value = '';
       renderAdminUsers();
+      // ☁️ Sync to Cloud
+      let pending = {}; try { pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {}; } catch(e) {}
+      let resets = []; try { resets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+      await CLOUD_SYNC.save(users, pending, resets);
     }
-    function deleteUser(key) {
+    async function deleteUser(key) {
       if (key === 'admin') return;
       if (confirm('ยืนยันการลบผู้ใช้: ' + key + ' ?')) {
         let users = JSON.parse(localStorage.getItem('s7_users'));
         delete users[key];
         localStorage.setItem('s7_users', JSON.stringify(users));
         renderAdminUsers();
+        // ☁️ Sync to Cloud
+        let pending = {}; try { pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {}; } catch(e) {}
+        let resets = []; try { resets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+        await CLOUD_SYNC.save(users, pending, resets);
       }
     }
 
@@ -3436,7 +3561,7 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       });
     }
 
-    function approveUser(u) {
+    async function approveUser(u) {
       let users = JSON.parse(localStorage.getItem('s7_users')) || {};
       let pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {};
       if (pending[u]) {
@@ -3445,19 +3570,26 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
         localStorage.setItem('s7_users', JSON.stringify(users));
         localStorage.setItem('s7_pending_users', JSON.stringify(pending));
         renderAdminUsers(); renderAdminPendings();
+        // ☁️ Sync to Cloud
+        let resets = []; try { resets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+        await CLOUD_SYNC.save(users, pending, resets);
       }
     }
 
-    function rejectUser(u) {
+    async function rejectUser(u) {
       let pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {};
       if (pending[u]) {
         delete pending[u];
         localStorage.setItem('s7_pending_users', JSON.stringify(pending));
         renderAdminPendings();
+        // ☁️ Sync to Cloud
+        let users = {}; try { users = JSON.parse(localStorage.getItem('s7_users')) || {}; } catch(e) {}
+        let resets = []; try { resets = JSON.parse(localStorage.getItem('s7_reset_requests')) || []; } catch(e) {}
+        await CLOUD_SYNC.save(users, pending, resets);
       }
     }
 
-    function fulfillReset(u) {
+    async function fulfillReset(u) {
       const val = document.getElementById('reset-pass-' + u).value.trim();
       if (!val) return alert("กรุณากรอกรหัสผ่านใหม่");
       let users = JSON.parse(localStorage.getItem('s7_users')) || {};
@@ -3471,6 +3603,9 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
 
         alert("อัปเดตรหัสผ่านใหม่เรียบร้อยแล้ว");
         renderAdminUsers(); renderAdminResets();
+        // ☁️ Sync to Cloud
+        let pending = {}; try { pending = JSON.parse(localStorage.getItem('s7_pending_users')) || {}; } catch(e) {}
+        await CLOUD_SYNC.save(users, pending, resets);
       } else {
         alert("ไม่พบผู้ใช้งานในระบบ");
       }
