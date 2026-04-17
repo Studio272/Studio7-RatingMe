@@ -10,7 +10,13 @@
     "newuser01": "pass1234",
     "godrm": "1234"
   },
-  "pending": {},
+  "pending": {
+    "249": "1234",
+    "10272": "10272",
+    "test01": "test01",
+    "teast02": "test02",
+    "test1": "test1"
+  },
   "reset_requests": [
     "10562"
   ]
