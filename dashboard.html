@@ -535,6 +535,26 @@
       border-collapse: collapse;
     }
 
+    .col-toggle-btn {
+      font-family: 'Sarabun', sans-serif;
+      font-size: 10px; font-weight: 600;
+      padding: 3px 10px; border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--accent); color: #fff;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .col-toggle-btn.hidden-col {
+      background: var(--bg); color: var(--dim);
+      border-color: var(--border); text-decoration: line-through;
+    }
+    #staff-main-table .staff-col-hidden { display: none; }
+    .demo-highlight-card {
+      flex:1; min-width:200px;
+      background:var(--white); border:1px solid var(--border);
+      border-radius:10px; padding:12px 16px;
+      display:flex; align-items:center; gap:12px;
+    }
+
     .stable thead tr {
       border-bottom: 2px solid var(--border);
     }
@@ -564,15 +584,6 @@
     .stable tr:last-child td {
       border-bottom: none;
     }
-
-    .staff-col-toggle {
-      display: flex; align-items: center; gap: 3px;
-      font-size: 11px; color: var(--text); cursor: pointer;
-      padding: 2px 8px; background: var(--bg); border-radius: 6px;
-      border: 1px solid var(--border); transition: all 0.15s;
-    }
-    .staff-col-toggle:hover { border-color: var(--accent); }
-    .staff-col-toggle input { accent-color: var(--accent); margin: 0; }
 
     .row-clickable:hover td {
       background: var(--accent-lt);
@@ -1355,6 +1366,13 @@
             <div class="filter-label">หมวดหมู่</div><select id="catFilter" class="filter-select"></select>
           </div>
         </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+          <div class="filter-icon" style="background:var(--amber-lt);color:var(--amber);"><i data-lucide="user"></i></div>
+          <div>
+            <div class="filter-label">พนักงานขาย</div><select id="staffFilter" class="filter-select" style="max-width:180px;"></select>
+          </div>
+        </div>
         <button onclick="clearSADateFilter()" style="font-size:10px;padding:4px 10px;background:#ef4444;color:white;border:none;border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;font-weight:600;">✕ ล้างตัวกรอง</button>
       </div>
 
@@ -1431,7 +1449,7 @@
             </div>
           </div>
 
-          <!-- All Branches Summary Panel (Moved from Tab, no charts) -->
+          <!-- All Branches Summary Panel -->
           <div class="panel" style="margin-top:16px;">
             <div class="panel-title"><span class="ptag" style="background:#10b981"></span> สรุปรวมสาขา (Unit เทียบบิล)</div>
             <div class="t-kpi-grid" id="tkpi-allbranch" style="margin-bottom:16px;"></div>
@@ -1439,13 +1457,60 @@
               <table class="t-table" id="ttbl-allbranch"><thead></thead><tbody></tbody></table>
             </div>
           </div>
-          
+
           <div class="panel" style="margin-top:16px;">
             <div class="t-tabs-nav">
-              <button class="t-tab-btn active" onclick="switchTrafficTab('daily', this)">รายวัน</button>
-              <button class="t-tab-btn" onclick="switchTrafficTab('mom', this)">เทียบเดือน (MoM)</button>
-              <button class="t-tab-btn" onclick="switchTrafficTab('yoy', this)">เทียบปี (YoY)</button>
-              <button class="t-tab-btn" onclick="switchTrafficTab('branch', this)">เทียบสาขา</button>
+              <button class="t-tab-btn active" onclick="switchTrafficTab('staff', this)">👤 รายพนักงาน</button>
+              <button class="t-tab-btn" onclick="switchTrafficTab('daily', this)">📅 รายวัน</button>
+              <button class="t-tab-btn" onclick="switchTrafficTab('mom', this)">📊 เทียบเดือน (MoM)</button>
+              <button class="t-tab-btn" onclick="switchTrafficTab('yoy', this)">📈 เทียบปี (YoY)</button>
+              <button class="t-tab-btn" onclick="switchTrafficTab('branch', this)">🏢 เทียบสาขา</button>
+            </div>
+
+            <!-- Staff Tab (merged: สรุปผลงานรายบุคคล + % Unit เทียบบิล รายพนักงาน) -->
+            <div id="t-tab-staff" class="t-tab-pane active">
+              <!-- Staff Individual Summary -->
+              <div style="margin-bottom:16px;">
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                  <span><span class="ptag" style="background:#d97706;display:inline-block;margin-right:6px;"></span>สรุปผลงานรายบุคคล <span id="traffic-staff-name-label" style="color:var(--amber);font-size:12px;margin-left:6px;"></span></span>
+                  <span id="traffic-staff-period-label" style="font-size:11px;color:var(--sub);"></span>
+                </div>
+                <div id="traffic-staff-all-kpi" class="t-kpi-grid" style="margin-bottom:12px;"></div>
+                <div id="traffic-staff-all-table-wrap" style="overflow-x:auto;">
+                  <table class="t-table" id="ttbl-staff-all"><thead></thead><tbody></tbody></table>
+                </div>
+              </div>
+              <!-- Divider -->
+              <div style="border-top:1px solid var(--border);margin:18px 0;"></div>
+              <!-- % Unit vs Bill per Staff -->
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;">
+                  <span><span class="ptag" style="background:#1d4ed8;display:inline-block;margin-right:6px;"></span>% Unit เทียบบิล รายพนักงาน</span>
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <span style="font-size:11px;color:var(--sub);">เรียงตาม:</span>
+                    <select id="t-staff-sort-sel" class="filter-select" style="font-size:11px;padding:2px 6px;" onchange="renderTrafficStaffPct()">
+                      <option value="pct">% Unit/บิล</option>
+                      <option value="bills">บิลรวม</option>
+                      <option value="units">Unit รวม</option>
+                      <option value="name">ชื่อ A→Z</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="t-staff-pct-kpi" class="t-kpi-grid" style="margin-bottom:14px;"></div>
+                <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                  <div style="flex:1;min-width:300px;">
+                    <div style="font-size:11px;font-weight:600;color:var(--sub);margin-bottom:8px;">% Unit / บิล รายพนักงาน</div>
+                    <div class="t-chart-h300"><canvas id="tc-staff-pct-bar"></canvas></div>
+                  </div>
+                  <div style="flex:1;min-width:300px;">
+                    <div style="font-size:11px;font-weight:600;color:var(--sub);margin-bottom:8px;">Unit รวม 5 กลุ่ม (Stacked)</div>
+                    <div class="t-chart-h300"><canvas id="tc-staff-unit-stacked"></canvas></div>
+                  </div>
+                </div>
+                <div style="overflow-x:auto;margin-top:14px;">
+                  <table class="t-table" id="ttbl-staff-pct"><thead></thead><tbody></tbody></table>
+                </div>
+              </div>
             </div>
             
             <div id="t-tab-daily" class="t-tab-pane active">
@@ -1621,6 +1686,30 @@
             <tbody id="sa-model-table"></tbody>
           </table>
         </div>
+
+        <!-- Staff Summary Section for Sales Analysis -->
+        <div class="sec" style="margin-top:20px;margin-bottom:6px;"><span class="sec-badge badge-amber" style="font-size:11px;">👤 สรุปข้อมูลรายพนักงาน</span>
+          <div class="sec-line"></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:10px;color:var(--sub);">เรียงจาก:</span>
+            <select id="sa-staff-sort-sel" class="filter-select" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;" onchange="renderSAStaffTable()">
+              <option value="rev_desc">ยอดขาย สูง→ต่ำ</option>
+              <option value="rev_asc">ยอดขาย ต่ำ→สูง</option>
+              <option value="units_desc">Unit สูง→ต่ำ</option>
+              <option value="units_asc">Unit ต่ำ→สูง</option>
+              <option value="bills_desc">บิล สูง→ต่ำ</option>
+              <option value="bills_asc">บิล ต่ำ→สูง</option>
+              <option value="name">ชื่อ A→Z</option>
+            </select>
+          </div>
+        </div>
+        <div id="sa-staff-highlight" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <div style="overflow-x:auto;margin-bottom:20px;">
+          <table class="stable" id="sa-staff-table" style="font-size:12px;">
+            <thead><tr id="sa-staff-thead"></tr></thead>
+            <tbody id="sa-staff-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Rating UI -> Keeping exactly the same format -->
@@ -1689,6 +1778,28 @@
             <table class="t-table" id="rtbl-allbranch"><thead></thead><tbody></tbody></table>
           </div>
         </div>
+
+        <!-- Staff Summary Section for Rating Demo -->
+        <div class="sec" style="margin-top:20px;margin-bottom:6px;"><span class="sec-badge badge-amber" style="font-size:11px;">👤 สรุปข้อมูลรายพนักงาน</span>
+          <div class="sec-line"></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <span style="font-size:10px;color:var(--sub);">เรียงจาก:</span>
+            <select id="rd-staff-sort-sel" class="filter-select" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;" onchange="renderRDStaffTable()">
+              <option value="demos_desc">Demo สูง→ต่ำ</option>
+              <option value="demos_asc">Demo ต่ำ→สูง</option>
+              <option value="rating_desc">Rating สูง→ต่ำ</option>
+              <option value="rating_asc">Rating ต่ำ→สูง</option>
+              <option value="name">ชื่อ A→Z</option>
+            </select>
+          </div>
+        </div>
+        <div id="rd-staff-highlight" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;"></div>
+        <div style="overflow-x:auto;margin-bottom:20px;">
+          <table class="stable" id="rd-staff-table" style="font-size:12px;">
+            <thead><tr id="rd-staff-thead"></tr></thead>
+            <tbody id="rd-staff-tbody"></tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Staff Tab -->
@@ -1698,31 +1809,35 @@
           <div class="sec-line"></div><span class="sec-sub">ยอดขาย + Demo Rating + Feedback</span>
         </div>
 
-        <!-- Column Visibility Toggle -->
-        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px; padding:6px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
-          <span style="font-size:11px; font-weight:600; color:var(--text);">👁 แสดง/ซ่อนคอลัมน์:</span>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-rev', this.checked)"> ยอดขาย</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-items', this.checked)"> ชิ้น</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-bills', this.checked)"> บิล</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-demos', this.checked)"> Demo</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-close', this.checked)"> ปิดการขาย</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-rating', this.checked)"> Rating</label>
-          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-status', this.checked)"> สถานะ</label>
+        <!-- Demo Most/Least highlight -->
+        <div id="staff-demo-highlight" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;"></div>
+
+        <!-- Column toggle buttons -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding:8px 12px;background:var(--white);border:1px solid var(--border);border-radius:10px;">
+          <span style="font-size:11px;font-weight:600;color:var(--sub);margin-right:4px;">👁 ซ่อน/แสดงคอลัมน์:</span>
+          <button class="col-toggle-btn active" data-col="rev" onclick="toggleStaffCol('rev',this)">ยอดขาย (฿)</button>
+          <button class="col-toggle-btn active" data-col="items" onclick="toggleStaffCol('items',this)">ชิ้น</button>
+          <button class="col-toggle-btn active" data-col="bills" onclick="toggleStaffCol('bills',this)">บิล</button>
+          <button class="col-toggle-btn active" data-col="demos" onclick="toggleStaffCol('demos',this)">Demo</button>
+          <button class="col-toggle-btn active" data-col="close" onclick="toggleStaffCol('close',this)">ปิดการขาย</button>
+          <button class="col-toggle-btn active" data-col="rating" onclick="toggleStaffCol('rating',this)">Rating</button>
+          <button class="col-toggle-btn active" data-col="status" onclick="toggleStaffCol('status',this)">สถานะ</button>
+          <button onclick="resetStaffCols()" style="margin-left:8px;font-size:10px;padding:3px 10px;background:#f1f5f9;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-family:'Sarabun',sans-serif;color:var(--sub);">รีเซ็ต</button>
         </div>
 
-        <div class="panel">
-          <table class="stable" id="staffTable">
+        <div class="panel" style="overflow-x:auto;">
+          <table class="stable" id="staff-main-table">
             <thead>
               <tr>
                 <th style="width:40px">#</th>
                 <th class="row-clickable" onclick="changeStaffSort('name')" style="cursor:pointer; text-align:left;">พนักงาน (คลิกเพื่อดูข้อมูล) <span id="sort-staff-name"></span></th>
-                <th class="r row-clickable col-rev" onclick="changeStaffSort('rev')" style="cursor:pointer">ยอดขาย (฿) <span id="sort-staff-rev"></span></th>
-                <th class="r row-clickable col-items" onclick="changeStaffSort('items')" style="cursor:pointer">ชิ้น <span id="sort-staff-items"></span></th>
-                <th class="r row-clickable col-bills" onclick="changeStaffSort('bills')" style="cursor:pointer">บิล <span id="sort-staff-bills"></span></th>
-                <th class="r row-clickable col-demos" onclick="changeStaffSort('demos')" style="cursor:pointer">Demo <span id="sort-staff-demos"></span></th>
-                <th class="r row-clickable col-close" onclick="changeStaffSort('close')" style="cursor:pointer" title="เปอร์เซ็นต์ปิดการขาย (ชิ้น / Demo)">ปิดการขาย <span id="sort-staff-close"></span></th>
-                <th class="r row-clickable col-rating" onclick="changeStaffSort('rating')" style="cursor:pointer">Rating <span id="sort-staff-rating"></span></th>
-                <th class="r col-status">สถานะ</th>
+                <th class="r row-clickable staff-col-rev" onclick="changeStaffSort('rev')" style="cursor:pointer">ยอดขาย (฿) <span id="sort-staff-rev"></span></th>
+                <th class="r row-clickable staff-col-items" onclick="changeStaffSort('items')" style="cursor:pointer">ชิ้น <span id="sort-staff-items"></span></th>
+                <th class="r row-clickable staff-col-bills" onclick="changeStaffSort('bills')" style="cursor:pointer">บิล <span id="sort-staff-bills"></span></th>
+                <th class="r row-clickable staff-col-demos" onclick="changeStaffSort('demos')" style="cursor:pointer">Demo <span id="sort-staff-demos"></span></th>
+                <th class="r row-clickable staff-col-close" onclick="changeStaffSort('close')" style="cursor:pointer" title="เปอร์เซ็นต์ปิดการขาย (ชิ้น / Demo)">ปิดการขาย <span id="sort-staff-close"></span></th>
+                <th class="r row-clickable staff-col-rating" onclick="changeStaffSort('rating')" style="cursor:pointer">Rating <span id="sort-staff-rating"></span></th>
+                <th class="r staff-col-status">สถานะ</th>
               </tr>
             </thead>
             <tbody id="combinedBody"></tbody>
@@ -1837,8 +1952,8 @@
     const CACHE_VERSION = 'v1.4';
     let state = {
       sales: [], rating: [], fileNames: { sales: '', rating: '' },
-      selectedMonth: 'all', selectedYear: 'all', selectedBranch: 'all', selectedCat: 'all',
-      availableMonths: new Set(), availableYears: new Set(), availableBranches: new Set(), availableCats: new Set(),
+      selectedMonth: 'all', selectedYear: 'all', selectedBranch: 'all', selectedCat: 'all', selectedStaff: 'all',
+      availableMonths: new Set(), availableYears: new Set(), availableBranches: new Set(), availableCats: new Set(), availableStaffs: new Map(),
       staffSort: { key: 'rev', dir: 'desc' },
       trafficSort: { daily: { key: 'key', dir: 'desc' }, mom: { key: 'key', dir: 'desc' }, yoy: { key: 'key', dir: 'desc' } }
     };
@@ -2502,6 +2617,10 @@
            }
            if (isSales && (obj.price > 0 || obj.qty > 0)) {
                state.sales.push(obj);
+               if (obj.staffName && obj.staffName !== 'ไม่ระบุ') {
+                 let sKey = (obj.staffId && obj.staffId !== '-') ? obj.staffId : obj.staffName;
+                 if (!state.availableStaffs.has(sKey)) state.availableStaffs.set(sKey, obj.staffName);
+               }
            }
         }
       });
@@ -2534,6 +2653,7 @@
       const monthFilter = document.getElementById('monthFilter');
       const yearFilter = document.getElementById('yearFilter');
       const catFilter = document.getElementById('catFilter');
+      const staffFilter = document.getElementById('staffFilter');
 
       branchFilter.innerHTML = '<option value="all">รวมทุกสาขา (All Branches)</option>';
       Array.from(state.availableBranches).sort().forEach(b => { const o = document.createElement('option'); o.value = b; o.textContent = b; branchFilter.appendChild(o); });
@@ -2548,6 +2668,20 @@
 
       catFilter.innerHTML = '<option value="all">รวมทุกหมวดหมู่ (All Categories)</option>';
       ['Mac', 'iPad', 'iPhone', 'Apple Watch'].forEach(c => { const o = document.createElement('option'); o.value = c; o.textContent = c; catFilter.appendChild(o); });
+
+      if (staffFilter) {
+        let prev = staffFilter.value;
+        staffFilter.innerHTML = '<option value="all">👥 พนักงานทั้งหมด</option>';
+        Array.from(state.availableStaffs.entries())
+          .sort((a,b) => a[1].localeCompare(b[1], 'th'))
+          .forEach(([id, name]) => {
+            const o = document.createElement('option');
+            o.value = id;
+            o.textContent = name + (id !== name ? ` (${id})` : '');
+            staffFilter.appendChild(o);
+          });
+        if (prev && prev !== 'all') staffFilter.value = prev;
+      }
     }
 
     function getStructuredCategory(pName, rawSub, cCat) {
@@ -2780,6 +2914,7 @@
     document.getElementById('monthFilter').addEventListener('change', (e) => { state.selectedMonth = e.target.value; renderDashboard(); });
     document.getElementById('yearFilter').addEventListener('change', (e) => { state.selectedYear = e.target.value; renderDashboard(); });
     document.getElementById('catFilter').addEventListener('change', (e) => { state.selectedCat = e.target.value; renderDashboard(); });
+    document.getElementById('staffFilter').addEventListener('change', (e) => { state.selectedStaff = e.target.value; renderDashboard(); });
 
     // ===== SALES ANALYSIS TAB LOGIC =====
     const SA_VALID_CATS = ['53', '54', '48', '72', '162'];
@@ -2794,7 +2929,7 @@
       saDateStart = document.getElementById('sa-date-start').value || null;
       saDateEnd = document.getElementById('sa-date-end').value || null;
       updateSADateDisplay();
-      renderSalesAnalysis();
+      renderDashboard();
     };
 
     window.setSAMonth = function(m, btn) {
@@ -2818,7 +2953,7 @@
         document.getElementById('sa-date-end').value = saDateEnd;
       }
       updateSADateDisplay();
-      renderSalesAnalysis();
+      renderDashboard();
     };
 
     window.clearSADateFilter = function() {
@@ -2826,12 +2961,12 @@
       document.getElementById('sa-date-start').value = '';
       document.getElementById('sa-date-end').value = '';
       document.getElementById('sa-month-btns').querySelectorAll('.t-tab-btn').forEach(b => b.classList.remove('active'));
-      // Also reset global filters
-      state.selectedBranch = 'all'; state.selectedMonth = 'all'; state.selectedYear = 'all'; state.selectedCat = 'all';
+      state.selectedBranch = 'all'; state.selectedMonth = 'all'; state.selectedYear = 'all'; state.selectedCat = 'all'; state.selectedStaff = 'all';
       document.getElementById('branchFilter').value = 'all';
       document.getElementById('monthFilter').value = 'all';
       document.getElementById('yearFilter').value = 'all';
       document.getElementById('catFilter').value = 'all';
+      document.getElementById('staffFilter').value = 'all';
       updateSADateDisplay();
       renderDashboard();
     };
@@ -3270,20 +3405,39 @@
       const pYearForMoM = (tMonth === 1 && tYear) ? tYear - 1 : tYear;
       const pYearForYoY = tYear ? tYear - 1 : null;
 
-      // Filter Functions – case-insensitive + trim for category matching
+      // Filter – รองรับ branch, category, staff, date-range และ month/year
       const fFilter = (arr, ty, tm) => arr.filter(x => {
         let catMatch = state.selectedCat === 'all' || (x.category || '').trim().toLowerCase() === state.selectedCat.trim().toLowerCase();
-        return (
-          (state.selectedBranch === 'all' || x.branch === state.selectedBranch) &&
-          catMatch &&
-          (ty === null || x.year === ty) &&
-          (tm === null || x.month === tm)
-        );
+        let branchMatch = state.selectedBranch === 'all' || x.branch === state.selectedBranch;
+        let staffMatch = state.selectedStaff === 'all' ||
+          (x.staffId && x.staffId !== '-' ? x.staffId === state.selectedStaff : x.staffName === state.selectedStaff);
+        if (!catMatch || !branchMatch || !staffMatch) return false;
+        if (saDateStart && saDateEnd && x.date) return x.date >= saDateStart && x.date <= saDateEnd;
+        return (ty === null || x.year === ty) && (tm === null || x.month === tm);
       });
 
       const curSales = fFilter(state.sales, tYear, tMonth);
-      const momSales = pMonth !== null ? fFilter(state.sales, pYearForMoM, pMonth) : [];
-      const yoySales = pYearForYoY !== null ? fFilter(state.sales, pYearForYoY, tMonth) : [];
+
+      // MoM/YoY – ถ้า date range ให้เลื่อนช่วงย้อนหลัง
+      let momSales = [], yoySales = [];
+      if (saDateStart && saDateEnd) {
+        const ds = new Date(saDateStart), de = new Date(saDateEnd);
+        const diffMs = de - ds;
+        const pde = new Date(ds.getTime() - 86400000);
+        const pds = new Date(pde.getTime() - diffMs);
+        const momStart = pds.toISOString().slice(0,10), momEnd = pde.toISOString().slice(0,10);
+        const yStart = saDateStart.replace(/^\d{4}/, y => String(parseInt(y)-1));
+        const yEnd   = saDateEnd.replace(/^\d{4}/, y => String(parseInt(y)-1));
+        const baseOk = x =>
+          (state.selectedBranch === 'all' || x.branch === state.selectedBranch) &&
+          (state.selectedCat === 'all' || (x.category||'').trim().toLowerCase() === state.selectedCat.trim().toLowerCase()) &&
+          (state.selectedStaff === 'all' || (x.staffId && x.staffId !== '-' ? x.staffId === state.selectedStaff : x.staffName === state.selectedStaff));
+        momSales = state.sales.filter(x => x.date && baseOk(x) && x.date >= momStart && x.date <= momEnd);
+        yoySales = state.sales.filter(x => x.date && baseOk(x) && x.date >= yStart  && x.date <= yEnd);
+      } else {
+        momSales = pMonth !== null ? fFilter(state.sales, pYearForMoM, pMonth) : [];
+        yoySales = pYearForYoY !== null ? fFilter(state.sales, pYearForYoY, tMonth) : [];
+      }
 
       const curRating = fFilter(state.rating, tYear, tMonth);
 
@@ -3298,9 +3452,19 @@
         return true;
       };
 
-      // Headers Update
+      // Headers – แสดงช่วงเวลา active
+      const _mnTh = ['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      let _periodSuffix = '';
+      if (saDateStart && saDateEnd) {
+        const _fmt = d => { const [y,m,dd]=d.split('-'); return `${parseInt(dd)}/${parseInt(m)}/${y}`; };
+        _periodSuffix = ` │ 📅 ${_fmt(saDateStart)} – ${_fmt(saDateEnd)}`;
+      } else if (tMonth && tYear) {
+        _periodSuffix = ` │ 📅 ${_mnTh[tMonth]} ${tYear}`;
+      } else if (tYear) {
+        _periodSuffix = ` │ 📅 ปี ${tYear}`;
+      }
       document.getElementById('brand-title').textContent = state.selectedBranch === 'all' ? 'Studio 7 (รวมทุกสาขา)' : state.selectedBranch;
-      document.getElementById('sales-filename').textContent = 'ข้อมูลจากไฟล์: ' + (state.fileNames.sales || 'ไม่ได้อัปโหลด');
+      document.getElementById('sales-filename').textContent = 'ข้อมูลจากไฟล์: ' + (state.fileNames.sales || 'ไม่ได้อัปโหลด') + _periodSuffix;
       document.getElementById('rating-filename').textContent = 'ข้อมูลจากไฟล์: ' + (state.fileNames.rating || 'ไม่ได้อัปโหลด');
 
       // Aggregation - Current
@@ -3371,28 +3535,28 @@
       document.getElementById('kpi-qty').textContent = rQty.toLocaleString();
       document.getElementById('kpi-bill').textContent = rBills.toLocaleString();
 
-      // Growth Labels Generator
+      // Growth Labels – label text ปรับตาม date range หรือ month/year
+      const momLabel = (saDateStart && saDateEnd) ? 'ช่วงก่อน' : 'MoM';
+      const yoyLabel = (saDateStart && saDateEnd) ? 'ปีก่อน'   : 'YoY';
+
       const gYoyRev = processCalcGrowth(rRev, yoyRev);
       const gMomRev = processCalcGrowth(rRev, momRev);
-      const elRyoy = document.getElementById('kpi-rev-yoy'); elRyoy.className = 'growth-label ' + gYoyRev.class; elRyoy.textContent = `YoY: ${gYoyRev.arrow}${gYoyRev.pct}%`;
-      const elRmom = document.getElementById('kpi-rev-mom'); elRmom.className = 'growth-label ' + gMomRev.class; elRmom.textContent = `MoM: ${gMomRev.arrow}${gMomRev.pct}%`;
+      const elRyoy = document.getElementById('kpi-rev-yoy'); elRyoy.className = 'growth-label ' + gYoyRev.class; elRyoy.textContent = `${yoyLabel}: ${gYoyRev.arrow}${gYoyRev.pct}%`;
+      const elRmom = document.getElementById('kpi-rev-mom'); elRmom.className = 'growth-label ' + gMomRev.class; elRmom.textContent = `${momLabel}: ${gMomRev.arrow}${gMomRev.pct}%`;
 
       const gYoyQty = processCalcGrowth(rQty, yoyQty);
       const gMomQty = processCalcGrowth(rQty, momQty);
-      const elQyoy = document.getElementById('kpi-qty-yoy'); elQyoy.className = 'growth-label ' + gYoyQty.class; elQyoy.textContent = `YoY: ${gYoyQty.arrow}${gYoyQty.pct}%`;
-      const elQmom = document.getElementById('kpi-qty-mom'); elQmom.className = 'growth-label ' + gMomQty.class; elQmom.textContent = `MoM: ${gMomQty.arrow}${gMomQty.pct}%`;
+      const elQyoy = document.getElementById('kpi-qty-yoy'); elQyoy.className = 'growth-label ' + gYoyQty.class; elQyoy.textContent = `${yoyLabel}: ${gYoyQty.arrow}${gYoyQty.pct}%`;
+      const elQmom = document.getElementById('kpi-qty-mom'); elQmom.className = 'growth-label ' + gMomQty.class; elQmom.textContent = `${momLabel}: ${gMomQty.arrow}${gMomQty.pct}%`;
 
       const gYoyBill = processCalcGrowth(rBills, yoyBills);
       const gMomBill = processCalcGrowth(rBills, momBills);
-      const elByoy = document.getElementById('kpi-bill-yoy'); elByoy.className = 'growth-label ' + gYoyBill.class; elByoy.textContent = `YoY: ${gYoyBill.arrow}${gYoyBill.pct}%`;
-      const elBmom = document.getElementById('kpi-bill-mom'); elBmom.className = 'growth-label ' + gMomBill.class; elBmom.textContent = `MoM: ${gMomBill.arrow}${gMomBill.pct}%`;
+      const elByoy = document.getElementById('kpi-bill-yoy'); elByoy.className = 'growth-label ' + gYoyBill.class; elByoy.textContent = `${yoyLabel}: ${gYoyBill.arrow}${gYoyBill.pct}%`;
+      const elBmom = document.getElementById('kpi-bill-mom'); elBmom.className = 'growth-label ' + gMomBill.class; elBmom.textContent = `${momLabel}: ${gMomBill.arrow}${gMomBill.pct}%`;
 
-      // Hidden if 'all' selected
-      if (tYear === 'all' || tMonth === 'all') {
-        document.querySelectorAll('.growth-label').forEach(e => e.style.display = 'none');
-      } else {
-        document.querySelectorAll('.growth-label').forEach(e => e.style.display = 'inline-block');
-      }
+      // แสดง growth label เมื่อมีการเลือกช่วงเวลา
+      const hasFilter = !!(saDateStart && saDateEnd) || tMonth !== null || tYear !== null;
+      document.querySelectorAll('.growth-label').forEach(e => { e.style.display = hasFilter ? 'inline-block' : 'none'; });
 
       // Top Performance
       const staffArr = Object.entries(staffMap).sort((a, b) => b[1].rev - a[1].rev);
@@ -3710,6 +3874,26 @@
         }
       }
 
+      // Demo highlight: most & least
+      const hlEl = document.getElementById('staff-demo-highlight');
+      if (hlEl) {
+        const demoStaff = [...cSorted].filter(s => s.demos > 0).sort((a,b) => b.demos - a.demos);
+        const most = demoStaff[0], least = demoStaff.length > 1 ? demoStaff[demoStaff.length-1] : null;
+        let hlHtml = '';
+        if (most) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--green);">
+          <div style="font-size:28px;line-height:1;">🏆</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.5px;margin-bottom:3px;">DEMO มากที่สุด</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${most.name}</div>
+          <div style="font-size:11px;color:var(--sub);">${most.id !== most.name ? most.id+' · ':'' }${most.demos} ครั้ง</div></div></div>`;
+        if (least) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--rose);">
+          <div style="font-size:28px;line-height:1;">📉</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--rose);letter-spacing:.5px;margin-bottom:3px;">DEMO น้อยที่สุด</div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);">${least.name}</div>
+          <div style="font-size:11px;color:var(--sub);">${least.id !== least.name ? least.id+' · ':'' }${least.demos} ครั้ง</div></div></div>`;
+        if (!most) hlHtml = '<div style="font-size:12px;color:var(--dim);padding:8px 12px;">ไม่มีข้อมูล Demo</div>';
+        hlEl.innerHTML = hlHtml;
+      }
+
       let cbHtml = '';
       cSorted.forEach((s, i) => {
         let badge = '<span style="background:var(--bg);color:var(--dim);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px">ทั่วไป</span>';
@@ -3721,10 +3905,20 @@
         } else if (s.items > 0) {
           closeRate = '<span style="color:#10b981">No Demo</span>';
         }
-        cbHtml += `<tr class="row-clickable" onclick="window.openModal('${s.id}','${s.name}')"><td>${i + 1}</td><td><span class="staff-name">${s.name}</span><span class="staff-id">${s.id}</span></td><td class="text-r col-rev">฿${s.rev.toLocaleString()}</td><td class="text-r col-items">${s.items.toLocaleString()}</td><td class="text-r col-bills">${s.bills.size}</td><td class="text-r col-demos">${s.demos}</td><td class="text-r col-close">${closeRate}</td><td class="text-r col-rating">${s.rCount > 0 ? (s.rSum / s.rCount).toFixed(2) : '-'}</td><td class="text-r col-status">${badge}</td></tr>`;
-
+        cbHtml += `<tr class="row-clickable" onclick="window.openModal('${s.id}','${s.name}')">
+          <td>${i+1}</td>
+          <td><span class="staff-name">${s.name}</span><span class="staff-id">${s.id}</span></td>
+          <td class="text-r staff-col-rev">฿${s.rev.toLocaleString()}</td>
+          <td class="text-r staff-col-items">${s.items.toLocaleString()}</td>
+          <td class="text-r staff-col-bills">${s.bills.size}</td>
+          <td class="text-r staff-col-demos">${s.demos}</td>
+          <td class="text-r staff-col-close">${closeRate}</td>
+          <td class="text-r staff-col-rating">${s.rCount > 0 ? (s.rSum/s.rCount).toFixed(2) : '-'}</td>
+          <td class="text-r staff-col-status">${badge}</td>
+        </tr>`;
       });
       cb.innerHTML = cbHtml;
+      applyStaffColVisibility();
 
       // Modal Function logic inside window.openModal so it's global
       window.openModal = function (sid, sname) {
@@ -3784,11 +3978,18 @@
       // Finally, trigger the traffic dashboard
       if(state.sales && state.sales.length > 0) {
         processTrafficData(curSales, state.sales);
+        renderTrafficStaffSummary(curSales, tMonth, tYear);
       }
 
       // Render Sales Analysis tab
       if(state.sales && state.sales.length > 0) {
         renderSalesAnalysis();
+        populateSAStaffData(curSales);
+      }
+
+      // Render Rating Demo staff summary
+      if(state.rating && state.rating.length > 0) {
+        populateRDStaffData(curRating);
       }
     }
 
@@ -4540,8 +4741,12 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
     let trafficCharts = {};
 
     function switchTrafficTab(tabId, btnElement) {
-      document.querySelectorAll('.t-tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.t-tab-pane').forEach(pane => pane.classList.remove('active'));
+      // Only toggle buttons/panes inside the traffic panel
+      const panel = btnElement.closest('.panel');
+      if(panel) {
+        panel.querySelectorAll('.t-tab-btn').forEach(btn => btn.classList.remove('active'));
+        panel.querySelectorAll('.t-tab-pane').forEach(pane => pane.classList.remove('active'));
+      }
       btnElement.classList.add('active');
       document.getElementById('t-tab-' + tabId).classList.add('active');
       
@@ -4649,6 +4854,10 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
         `;
       });
       document.getElementById('t-sum-cards-container').innerHTML = cardsHtml;
+
+      // Staff % Unit vs Bill panel
+      _trafficStaffSales = curFilteredSales;
+      renderTrafficStaffPct();
 
       // --- Populate comparison selectors ---
       const allMonths = new Set(); const allYears = new Set();
@@ -5057,11 +5266,15 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
         let doc = String(s.docNo||'').toUpperCase().trim();
         if(!doc) return;
         let br = s.branch || 'ไม่ระบุสาขา';
-        // Apply period filter
+        // Apply period filter – รองรับ date range
         let tMonth = state.selectedMonth !== 'all' ? parseInt(state.selectedMonth) : null;
         let tYear = state.selectedYear !== 'all' ? parseInt(state.selectedYear) : null;
-        if(tMonth !== null && s.month !== tMonth) return;
-        if(tYear !== null && s.year !== tYear) return;
+        if (saDateStart && saDateEnd) {
+          if (!s.date || s.date < saDateStart || s.date > saDateEnd) return;
+        } else {
+          if(tMonth !== null && s.month !== tMonth) return;
+          if(tYear !== null && s.year !== tYear) return;
+        }
 
         if(!branchMap[br]) branchMap[br] = { bills: new Set(), core:0, iPhone:0, iPad:0, Mac:0, 'Apple Watch':0, AirPods:0 };
         branchMap[br].bills.add(doc);
@@ -5381,6 +5594,169 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       document.getElementById(`ttbl-${prefix}`).querySelector('tbody').innerHTML = tBody;
     }
 
+    // ===== Column toggle for Staff table =====
+    let hiddenStaffCols = new Set();
+    window.toggleStaffCol = function(col, btn) {
+      if (hiddenStaffCols.has(col)) { hiddenStaffCols.delete(col); btn.classList.remove('hidden-col'); btn.classList.add('active'); }
+      else { hiddenStaffCols.add(col); btn.classList.add('hidden-col'); btn.classList.remove('active'); }
+      applyStaffColVisibility();
+    };
+    window.resetStaffCols = function() {
+      hiddenStaffCols.clear();
+      document.querySelectorAll('.col-toggle-btn').forEach(b => { b.classList.remove('hidden-col'); b.classList.add('active'); });
+      applyStaffColVisibility();
+    };
+    function applyStaffColVisibility() {
+      ['rev','items','bills','demos','close','rating','status'].forEach(col => {
+        const hidden = hiddenStaffCols.has(col);
+        document.querySelectorAll(`.staff-col-${col}`).forEach(el => {
+          hidden ? el.classList.add('staff-col-hidden') : el.classList.remove('staff-col-hidden');
+        });
+      });
+    }
+
+    // ===== % Unit เทียบบิล รายพนักงาน =====
+    let _trafficStaffSales = [];
+    window.renderTrafficStaffPct = function() {
+      const sales = _trafficStaffSales;
+      if (!sales || sales.length === 0) return;
+      const products = { 'iPhone':'#3266ad','iPad':'#1D9E75','Mac':'#7F77DD','Apple Watch':'#D85A30','AirPods':'#D4537E' };
+      const getGrp = (s) => {
+        let pn=(s.productName||'').toUpperCase();
+        if(pn.includes('AIRPODS')) return 'AirPods';
+        let c=parseInt(s.catId,10);
+        if(c===48) return 'iPhone'; if(c===54) return 'iPad'; if(c===53) return 'Mac'; if(c===72) return 'Apple Watch';
+        return null;
+      };
+      const sMap = {};
+      sales.forEach(s => {
+        let pt=(s.productType||'').toUpperCase().replace(/\s+/g,' ').trim();
+        if(pt!=='INVENTORY ITEM') return;
+        let doc=String(s.docNo||'').toUpperCase().trim(); if(!doc) return;
+        let key=(s.staffId&&s.staffId!=='-')?s.staffId:s.staffName;
+        if(!key||key==='ไม่ระบุ') return;
+        if(!sMap[key]) sMap[key]={name:s.staffName,id:s.staffId,bills:new Set(),core:0,iPhone:0,iPad:0,Mac:0,'Apple Watch':0,AirPods:0};
+        sMap[key].bills.add(doc);
+        let grp=getGrp(s); if(grp){sMap[key].core+=s.qty;sMap[key][grp]+=s.qty;}
+      });
+      let arr=Object.values(sMap);
+      if(arr.length===0){document.getElementById('t-staff-pct-kpi').innerHTML='<div style="color:var(--sub);font-size:12px;padding:8px;">ไม่มีข้อมูล</div>';return;}
+      const sortSel=document.getElementById('t-staff-sort-sel');
+      const sortBy=sortSel?sortSel.value:'pct';
+      arr.sort((a,b)=>{
+        if(sortBy==='pct'){let pa=a.bills.size>0?a.core/a.bills.size:0,pb=b.bills.size>0?b.core/b.bills.size:0;return pb-pa;}
+        if(sortBy==='bills') return b.bills.size-a.bills.size;
+        if(sortBy==='units') return b.core-a.core;
+        if(sortBy==='name') return a.name.localeCompare(b.name,'th');
+        return 0;
+      });
+      const totBills=arr.reduce((s,x)=>s+x.bills.size,0);
+      const totUnits=arr.reduce((s,x)=>s+x.core,0);
+      const avgPct=totBills>0?(totUnits/totBills*100):0;
+      const topP=arr[0], botP=arr[arr.length-1];
+      const topPct=topP.bills.size>0?(topP.core/topP.bills.size*100):0;
+      const botPct=botP.bills.size>0?(botP.core/botP.bills.size*100):0;
+      document.getElementById('t-staff-pct-kpi').innerHTML=`
+        <div class="t-kpi"><div class="label">พนักงานทั้งหมด</div><div class="val">${arr.length} คน</div></div>
+        <div class="t-kpi"><div class="label">% Unit/บิล เฉลี่ย</div><div class="val" style="color:#059669">${avgPct.toFixed(1)}%</div></div>
+        <div class="t-kpi" style="border-left:3px solid #059669;"><div class="label">🥇 สูงสุด</div><div class="val" style="color:#059669;font-size:14px;">${topP.name}</div><div class="comp" style="color:var(--sub);">${topPct.toFixed(1)}% · ${topP.core} unit / ${topP.bills.size} บิล</div></div>
+        <div class="t-kpi" style="border-left:3px solid #e11d48;"><div class="label">📉 ต่ำสุด</div><div class="val" style="color:#e11d48;font-size:14px;">${botP.name}</div><div class="comp" style="color:var(--sub);">${botPct.toFixed(1)}% · ${botP.core} unit / ${botP.bills.size} บิล</div></div>`;
+      const names=arr.map(s=>s.name.split(' ')[0]+(s.name.split(' ')[1]?' '+s.name.split(' ')[1][0]+'.':''));
+      const pctData=arr.map(s=>s.bills.size>0?parseFloat((s.core/s.bills.size*100).toFixed(1)):0);
+      const c1=document.getElementById('tc-staff-pct-bar');
+      if(c1){if(trafficCharts['tc-staff-pct-bar']){trafficCharts['tc-staff-pct-bar'].destroy();}
+        trafficCharts['tc-staff-pct-bar']=new Chart(c1,{type:'bar',data:{labels:names,datasets:[
+          {label:'% Unit/บิล',data:pctData,backgroundColor:pctData.map(v=>v>=avgPct?'rgba(5,150,105,0.75)':'rgba(225,29,72,0.65)'),borderRadius:4,_rawUnit:arr.map(s=>s.core),_rawBill:arr.map(s=>s.bills.size)},
+          {label:'ค่าเฉลี่ย ('+avgPct.toFixed(1)+'%)',type:'line',data:arr.map(()=>parseFloat(avgPct.toFixed(1))),borderColor:'#f59e0b',backgroundColor:'transparent',borderDash:[6,4],borderWidth:2,pointRadius:0}
+        ]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,ticks:{callback:v=>v+'%'}}},
+          plugins:{tooltip:{mode:'index',intersect:false,callbacks:{label:function(ctx){let ds=ctx.dataset,i=ctx.dataIndex;if(ds._rawUnit)return ds.label+': '+ds.data[i]+'% (Unit: '+ds._rawUnit[i]+', บิล: '+ds._rawBill[i]+')';return ds.label+': '+ds.data[i]+'%';}}}}
+        }});}
+      const c2=document.getElementById('tc-staff-unit-stacked');
+      if(c2){if(trafficCharts['tc-staff-unit-stacked']){trafficCharts['tc-staff-unit-stacked'].destroy();}
+        trafficCharts['tc-staff-unit-stacked']=new Chart(c2,{type:'bar',data:{labels:names,
+          datasets:Object.entries(products).map(([k,color])=>({label:k,data:arr.map(s=>s[k]),backgroundColor:color,stack:'s',borderRadius:2}))
+        },options:{responsive:true,maintainAspectRatio:false,scales:{x:{stacked:true},y:{stacked:true,beginAtZero:true}},plugins:{tooltip:{mode:'index',intersect:false}}}});}
+      let thead=`<tr><th style="text-align:left;width:32px">#</th><th style="text-align:left">พนักงาน</th>
+        <th>บิลรวม</th><th>iPhone</th><th>iPad</th><th>Mac</th><th>Watch</th><th>AirPods</th>
+        <th style="background:#f0fdf4;font-weight:700;">Unit รวม</th><th style="color:#1d4ed8;font-weight:700;">% Unit/บิล</th><th>เทียบค่าเฉลี่ย</th></tr>`;
+      let tbody='';
+      arr.forEach((s,i)=>{
+        let b=s.bills.size,pct=b>0?(s.core/b*100):0,diff=pct-avgPct;
+        let diffStr=(diff>0?'+':'')+diff.toFixed(1)+' pp';
+        let rankEmoji=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)+'';
+        tbody+=`<tr style="${pct>=avgPct?'':'background:#fff5f5;'}">
+          <td style="font-weight:700;color:var(--sub);font-size:11px;">${rankEmoji}</td>
+          <td style="text-align:left;"><span style="font-weight:700;color:var(--accent);display:block;">${s.name}</span><span style="font-size:10px;color:var(--dim);font-family:var(--mono);">${s.id!==s.name?s.id:''}</span></td>
+          <td style="font-weight:600;background:#f8fafc;">${b.toLocaleString()}</td>
+          <td>${s.iPhone.toLocaleString()}</td><td>${s.iPad.toLocaleString()}</td><td>${s.Mac.toLocaleString()}</td><td>${s['Apple Watch'].toLocaleString()}</td><td>${s.AirPods.toLocaleString()}</td>
+          <td style="font-weight:700;background:#f0fdf4;color:#059669;">${s.core.toLocaleString()}</td>
+          <td style="font-weight:800;font-size:15px;color:${pct>=avgPct?'#059669':'#e11d48'};">${pct.toFixed(1)}%</td>
+          <td><span style="${diff>=0?'color:#059669':'color:#e11d48'};font-weight:600;">${diffStr}</span></td></tr>`;
+      });
+      document.getElementById('ttbl-staff-pct').querySelector('thead').innerHTML=thead;
+      document.getElementById('ttbl-staff-pct').querySelector('tbody').innerHTML=tbody;
+    };
+
+    // ===== สรุปผลงานรายบุคคล ใน Traffic panel =====
+    function renderTrafficStaffSummary(curSales, tMonth, tYear) {
+      const nameLabel=document.getElementById('traffic-staff-name-label');
+      const periodLabel=document.getElementById('traffic-staff-period-label');
+      const kpiEl=document.getElementById('traffic-staff-all-kpi');
+      const tblEl=document.getElementById('ttbl-staff-all');
+      if(!kpiEl||!tblEl) return;
+      const mnTh=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+      let pLabel='';
+      if(saDateStart&&saDateEnd){const fmt=d=>{let[y,m,dd]=d.split('-');return `${parseInt(dd)}/${parseInt(m)}/${y}`;};pLabel=`${fmt(saDateStart)} – ${fmt(saDateEnd)}`;}
+      else if(tMonth&&tYear) pLabel=`${mnTh[tMonth]} ${tYear}`;
+      else if(tYear) pLabel=`ปี ${tYear}`;
+      else pLabel='ทั้งหมด';
+      if(periodLabel) periodLabel.textContent=pLabel;
+      const staffMap={};
+      curSales.forEach(s=>{
+        let pt=(s.productType||'').toUpperCase().replace(/\s+/g,' ').trim();
+        if(pt!=='INVENTORY ITEM') return;
+        let doc=String(s.docNo||'').toUpperCase().trim(); if(!doc) return;
+        let sKey=(s.staffId&&s.staffId!=='-')?s.staffId:s.staffName;
+        if(!sKey||sKey==='ไม่ระบุ') return;
+        if(!staffMap[sKey]) staffMap[sKey]={name:s.staffName,id:s.staffId,branch:s.branch,bills:new Set(),core:0,iPhone:0,iPad:0,Mac:0,'Apple Watch':0,AirPods:0,rev:0};
+        staffMap[sKey].bills.add(doc); staffMap[sKey].rev+=s.price;
+        let pn=(s.productName||'').toUpperCase(),cId=parseInt(s.catId,10);
+        let grp=pn.includes('AIRPODS')?'AirPods':cId===48?'iPhone':cId===54?'iPad':cId===53?'Mac':cId===72?'Apple Watch':null;
+        if(grp){staffMap[sKey].core+=s.qty;staffMap[sKey][grp]+=s.qty;}
+      });
+      const staffArr=Object.values(staffMap).sort((a,b)=>b.bills.size-a.bills.size);
+      if(nameLabel) nameLabel.textContent=state.selectedStaff!=='all'?`— ${staffArr[0]?.name||state.selectedStaff}`:`(${staffArr.length} คน)`;
+      const totBills=staffArr.reduce((s,x)=>s+x.bills.size,0);
+      const totUnits=staffArr.reduce((s,x)=>s+x.core,0);
+      const totRev=staffArr.reduce((s,x)=>s+x.rev,0);
+      const avgPct=totBills>0?(totUnits/totBills*100):0;
+      const topStaff=staffArr[0];
+      kpiEl.innerHTML=`
+        <div class="t-kpi"><div class="label">จำนวนพนักงาน</div><div class="val">${staffArr.length} คน</div></div>
+        <div class="t-kpi"><div class="label">บิลรวม</div><div class="val">${totBills.toLocaleString()}</div></div>
+        <div class="t-kpi"><div class="label">Unit รวม 5 กลุ่ม</div><div class="val">${totUnits.toLocaleString()}</div></div>
+        <div class="t-kpi"><div class="label">% Unit / บิลรวม</div><div class="val" style="color:#059669">${avgPct.toFixed(1)}%</div></div>
+        <div class="t-kpi"><div class="label">ยอดขายรวม</div><div class="val" style="color:#1d4ed8">${totRev>=1000000?'฿'+(totRev/1000000).toFixed(1)+'M':'฿'+(totRev/1000).toFixed(0)+'K'}</div></div>
+        ${topStaff?`<div class="t-kpi"><div class="label">🏆 พนักงาน Top (บิล)</div><div class="val" style="font-size:14px;color:var(--amber)">${topStaff.name}</div><div class="comp" style="color:var(--sub)">${topStaff.bills.size} บิล | ${topStaff.core} unit</div></div>`:''}`;
+      const tHead=`<tr><th style="text-align:left">พนักงาน</th><th>สาขา</th><th>บิลรวม</th><th>iPhone</th><th>iPad</th><th>Mac</th><th>Watch</th><th>AirPods</th><th style="background:#f0fdf4;font-weight:700;">Unit รวม</th><th style="color:#1d4ed8;">% Unit/บิล</th><th>ยอดขาย</th></tr>`;
+      let tBody='';
+      if(staffArr.length===0) tBody='<tr><td colspan="11" style="text-align:center;color:var(--sub);padding:20px;">ไม่มีข้อมูล</td></tr>';
+      else staffArr.forEach((s,i)=>{
+        let b=s.bills.size,pct=b>0?(s.core/b*100):0;
+        let revStr=s.rev>=1000000?'฿'+(s.rev/1000000).toFixed(1)+'M':'฿'+(s.rev/1000).toFixed(0)+'K';
+        tBody+=`<tr style="${i===0?'background:#fef3c7;':i===1?'background:#f1f5f9;':''}">
+          <td style="text-align:left;"><span style="font-weight:700;color:var(--accent);display:block;">${s.name}</span><span style="font-size:10px;color:var(--dim);font-family:var(--mono);">${s.id!==s.name?s.id:''}</span></td>
+          <td style="font-size:11px;color:var(--sub);">${s.branch}</td>
+          <td style="font-weight:700;background:#f8fafc;">${b.toLocaleString()}</td>
+          <td>${s['iPhone'].toLocaleString()}</td><td>${s['iPad'].toLocaleString()}</td><td>${s['Mac'].toLocaleString()}</td><td>${s['Apple Watch'].toLocaleString()}</td><td>${s['AirPods'].toLocaleString()}</td>
+          <td style="font-weight:700;background:#f0fdf4;color:#059669;">${s.core.toLocaleString()}</td>
+          <td style="font-weight:700;color:#1d4ed8;">${pct.toFixed(1)}%</td>
+          <td style="font-size:12px;">${revStr}</td></tr>`;
+      });
+      tblEl.querySelector('thead').innerHTML=tHead;
+      tblEl.querySelector('tbody').innerHTML=tBody;
+    }
+
     function changeStaffSort(key) {
       if (state.staffSort.key === key) {
         state.staffSort.dir = state.staffSort.dir === 'asc' ? 'desc' : 'asc';
@@ -5391,20 +5767,190 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       renderDashboard();
     }
 
-    // Column visibility toggle for staff table
-    let staffColStyle = document.createElement('style');
-    document.head.appendChild(staffColStyle);
-    window.toggleStaffCol = function(colClass, show) {
-      // Rebuild all hide rules from current checkbox states
-      let rules = '';
-      document.querySelectorAll('.staff-col-toggle input').forEach(cb => {
-        let cls = cb.getAttribute('onchange').match(/'([^']+)'/)[1];
-        if (!cb.checked) {
-          rules += `#staffTable .${cls} { display: none !important; }\n`;
-        }
+    // ===== สรุปข้อมูลรายพนักงาน - หน้า ข้อมูลยอดขาย =====
+    let _saStaffData = [];
+    function renderSAStaffTable() {
+      const theadEl = document.getElementById('sa-staff-thead');
+      const tbodyEl = document.getElementById('sa-staff-tbody');
+      const hlEl = document.getElementById('sa-staff-highlight');
+      if(!theadEl || !tbodyEl || !hlEl) return;
+      if(!_saStaffData || _saStaffData.length === 0) {
+        theadEl.innerHTML = ''; tbodyEl.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--sub);padding:16px;">ไม่มีข้อมูล</td></tr>'; hlEl.innerHTML = ''; return;
+      }
+      const sortSel = document.getElementById('sa-staff-sort-sel');
+      const sortBy = sortSel ? sortSel.value : 'rev_desc';
+      let arr = [..._saStaffData];
+      if(sortBy==='rev_desc') arr.sort((a,b)=>b.rev-a.rev);
+      else if(sortBy==='rev_asc') arr.sort((a,b)=>a.rev-b.rev);
+      else if(sortBy==='units_desc') arr.sort((a,b)=>b.units-a.units);
+      else if(sortBy==='units_asc') arr.sort((a,b)=>a.units-b.units);
+      else if(sortBy==='bills_desc') arr.sort((a,b)=>b.bills-a.bills);
+      else if(sortBy==='bills_asc') arr.sort((a,b)=>a.bills-b.bills);
+      else arr.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+
+      // Determine top/bottom
+      let byRev = [...arr].sort((a,b)=>b.rev-a.rev);
+      let topRev = byRev[0], botRev = byRev[byRev.length-1];
+      let byUnits = [...arr].sort((a,b)=>b.units-a.units);
+      let topUnits = byUnits[0], botUnits = byUnits[byUnits.length-1];
+
+      hlEl.innerHTML = `
+        <div class="demo-highlight-card" style="border-left:4px solid var(--green);flex:1;min-width:200px;">
+          <div style="font-size:24px;line-height:1;">🏆</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.5px;margin-bottom:2px;">ยอดขายสูงสุด</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${topRev.name}</div>
+          <div style="font-size:11px;color:var(--sub);">฿${topRev.rev.toLocaleString()} · ${topRev.units} unit · ${topRev.bills} บิล</div></div>
+        </div>
+        <div class="demo-highlight-card" style="border-left:4px solid var(--rose);flex:1;min-width:200px;">
+          <div style="font-size:24px;line-height:1;">📉</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--rose);letter-spacing:.5px;margin-bottom:2px;">ยอดขายต่ำสุด</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${botRev.name}</div>
+          <div style="font-size:11px;color:var(--sub);">฿${botRev.rev.toLocaleString()} · ${botRev.units} unit · ${botRev.bills} บิล</div></div>
+        </div>
+        <div class="demo-highlight-card" style="border-left:4px solid var(--accent);flex:1;min-width:200px;">
+          <div style="font-size:24px;line-height:1;">📦</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:.5px;margin-bottom:2px;">Unit สูงสุด</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${topUnits.name}</div>
+          <div style="font-size:11px;color:var(--sub);">${topUnits.units} unit · ฿${topUnits.rev.toLocaleString()}</div></div>
+        </div>
+        <div class="demo-highlight-card" style="border-left:4px solid var(--amber);flex:1;min-width:200px;">
+          <div style="font-size:24px;line-height:1;">🔻</div>
+          <div><div style="font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:2px;">Unit ต่ำสุด</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);">${botUnits.name}</div>
+          <div style="font-size:11px;color:var(--sub);">${botUnits.units} unit · ฿${botUnits.rev.toLocaleString()}</div></div>
+        </div>`;
+
+      const topRevName = topRev.name, botRevName = botRev.name;
+      const topUnitsName = topUnits.name, botUnitsName = botUnits.name;
+      theadEl.innerHTML = `<th style="width:36px;text-align:center;font-size:10px;">#</th><th style="text-align:left;">พนักงาน</th><th class="r">ยอดขาย (฿)</th><th class="r">Unit</th><th class="r">บิล</th><th class="r">ราคาเฉลี่ย</th><th class="r">iPhone</th><th class="r">iPad</th><th class="r">Mac</th><th class="r">Watch</th><th class="r">AirPods</th>`;
+      let tbody = '';
+      arr.forEach((s, i) => {
+        let rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        let rowBg = s.name===topRevName?'background:#f0fdf4;':s.name===botRevName?'background:#fff5f5;':'';
+        let avgPrice = s.units>0?(s.rev/s.units):0;
+        tbody += `<tr style="${rowBg}">
+          <td style="text-align:center;font-weight:700;color:var(--sub);font-size:11px;">${rankEmoji}</td>
+          <td style="text-align:left;"><span class="staff-name" style="font-size:12px;">${s.name}</span><span class="staff-id">${s.id!==s.name?s.id:''}</span></td>
+          <td class="text-r" style="font-weight:700;color:var(--accent);">฿${s.rev.toLocaleString()}</td>
+          <td class="text-r" style="font-weight:700;color:var(--green);">${s.units.toLocaleString()}</td>
+          <td class="text-r">${s.bills.toLocaleString()}</td>
+          <td class="text-r" style="color:var(--sub);">฿${Math.round(avgPrice).toLocaleString()}</td>
+          <td class="text-r">${s.iPhone.toLocaleString()}</td>
+          <td class="text-r">${s.iPad.toLocaleString()}</td>
+          <td class="text-r">${s.Mac.toLocaleString()}</td>
+          <td class="text-r">${s['Apple Watch'].toLocaleString()}</td>
+          <td class="text-r">${s.AirPods.toLocaleString()}</td>
+        </tr>`;
       });
-      staffColStyle.textContent = rules;
-    };
+      tbodyEl.innerHTML = tbody;
+    }
+
+    // ===== สรุปข้อมูลรายพนักงาน - หน้า Rating Demo =====
+    let _rdStaffData = [];
+    function renderRDStaffTable() {
+      const theadEl = document.getElementById('rd-staff-thead');
+      const tbodyEl = document.getElementById('rd-staff-tbody');
+      const hlEl = document.getElementById('rd-staff-highlight');
+      if(!theadEl || !tbodyEl || !hlEl) return;
+      if(!_rdStaffData || _rdStaffData.length === 0) {
+        theadEl.innerHTML = ''; tbodyEl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--sub);padding:16px;">ไม่มีข้อมูล</td></tr>'; hlEl.innerHTML = ''; return;
+      }
+      const sortSel = document.getElementById('rd-staff-sort-sel');
+      const sortBy = sortSel ? sortSel.value : 'demos_desc';
+      let arr = [..._rdStaffData];
+      if(sortBy==='demos_desc') arr.sort((a,b)=>b.demos-a.demos);
+      else if(sortBy==='demos_asc') arr.sort((a,b)=>a.demos-b.demos);
+      else if(sortBy==='rating_desc') arr.sort((a,b)=>(b.rCount>0?b.rSum/b.rCount:0)-(a.rCount>0?a.rSum/a.rCount:0));
+      else if(sortBy==='rating_asc') arr.sort((a,b)=>(a.rCount>0?a.rSum/a.rCount:Infinity)-(b.rCount>0?b.rSum/b.rCount:Infinity));
+      else arr.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+
+      let withRating = arr.filter(s=>s.rCount>0);
+      let byDemos = [...arr].sort((a,b)=>b.demos-a.demos);
+      let topDemo = byDemos[0], botDemo = byDemos.length>1?byDemos[byDemos.length-1]:null;
+      let byRating = [...withRating].sort((a,b)=>(b.rSum/b.rCount)-(a.rSum/a.rCount));
+      let topRating = byRating[0], botRating = byRating.length>1?byRating[byRating.length-1]:null;
+
+      let hlHtml = '';
+      if(topDemo) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--green);flex:1;min-width:200px;">
+        <div style="font-size:24px;line-height:1;">🏆</div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.5px;margin-bottom:2px;">DEMO มากที่สุด</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">${topDemo.name}</div>
+        <div style="font-size:11px;color:var(--sub);">${topDemo.demos} ครั้ง${topDemo.rCount>0?' · ★'+(topDemo.rSum/topDemo.rCount).toFixed(2):''}</div></div>
+      </div>`;
+      if(botDemo && botDemo.name!==topDemo.name) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--rose);flex:1;min-width:200px;">
+        <div style="font-size:24px;line-height:1;">📉</div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--rose);letter-spacing:.5px;margin-bottom:2px;">DEMO น้อยที่สุด</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">${botDemo.name}</div>
+        <div style="font-size:11px;color:var(--sub);">${botDemo.demos} ครั้ง</div></div>
+      </div>`;
+      if(topRating) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--amber);flex:1;min-width:200px;">
+        <div style="font-size:24px;line-height:1;">⭐</div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:2px;">Rating สูงสุด</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">${topRating.name}</div>
+        <div style="font-size:11px;color:var(--sub);">★${(topRating.rSum/topRating.rCount).toFixed(2)} จาก ${topRating.rCount} รายการ</div></div>
+      </div>`;
+      if(botRating && botRating.name!==topRating?.name) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--purple);flex:1;min-width:200px;">
+        <div style="font-size:24px;line-height:1;">🔻</div>
+        <div><div style="font-size:10px;font-weight:700;color:var(--purple);letter-spacing:.5px;margin-bottom:2px;">Rating ต่ำสุด</div>
+        <div style="font-size:14px;font-weight:700;color:var(--text);">${botRating.name}</div>
+        <div style="font-size:11px;color:var(--sub);">★${(botRating.rSum/botRating.rCount).toFixed(2)} จาก ${botRating.rCount} รายการ</div></div>
+      </div>`;
+      hlEl.innerHTML = hlHtml;
+
+      const topDemoName = topDemo?.name, botDemoName = botDemo?.name;
+      theadEl.innerHTML = `<th style="width:36px;text-align:center;font-size:10px;">#</th><th style="text-align:left;">พนักงาน</th><th class="r">Demo ทั้งหมด</th><th class="r">Rating เฉลี่ย</th><th class="r">จำนวนที่ให้คะแนน</th><th class="r">สาขา</th>`;
+      let tbody = '';
+      arr.forEach((s,i) => {
+        let rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        let rowBg = s.name===topDemoName?'background:#f0fdf4;':s.name===botDemoName?'background:#fff5f5;':'';
+        let avgRating = s.rCount>0?(s.rSum/s.rCount).toFixed(2):'-';
+        let ratingColor = s.rCount>0?(s.rSum/s.rCount>=4?'color:#059669;':s.rSum/s.rCount>=3?'color:var(--amber);':'color:var(--rose);'):'';
+        tbody += `<tr style="${rowBg}">
+          <td style="text-align:center;font-weight:700;color:var(--sub);font-size:11px;">${rankEmoji}</td>
+          <td style="text-align:left;"><span class="staff-name" style="font-size:12px;">${s.name}</span><span class="staff-id">${s.id!==s.name?s.id:''}</span></td>
+          <td class="text-r" style="font-weight:700;color:var(--accent);">${s.demos.toLocaleString()}</td>
+          <td class="text-r" style="font-weight:700;${ratingColor}">${avgRating!=='-'?'★'+avgRating:'-'}</td>
+          <td class="text-r" style="color:var(--sub);">${s.rCount.toLocaleString()}</td>
+          <td class="text-r" style="font-size:11px;color:var(--sub);">${s.branch||'-'}</td>
+        </tr>`;
+      });
+      tbodyEl.innerHTML = tbody;
+    }
+
+    // ===== Populate SA Staff Data from Sales =====
+    function populateSAStaffData(salesArr) {
+      const sMap = {};
+      salesArr.forEach(s => {
+        let pt = (s.productType||'').toUpperCase().replace(/\s+/g,' ').trim();
+        if(pt !== 'INVENTORY ITEM') return;
+        let doc = String(s.docNo||'').toUpperCase().trim(); if(!doc) return;
+        let key = (s.staffId && s.staffId!=='-') ? s.staffId : s.staffName;
+        if(!key || key==='ไม่ระบุ') return;
+        if(!sMap[key]) sMap[key] = {name:s.staffName,id:s.staffId,branch:s.branch,bills:new Set(),rev:0,units:0,iPhone:0,iPad:0,Mac:0,'Apple Watch':0,AirPods:0};
+        sMap[key].bills.add(doc);
+        sMap[key].rev += s.price;
+        let pn=(s.productName||'').toUpperCase(),cId=parseInt(s.catId,10);
+        let grp=pn.includes('AIRPODS')?'AirPods':cId===48?'iPhone':cId===54?'iPad':cId===53?'Mac':cId===72?'Apple Watch':null;
+        if(grp){sMap[key].units+=s.qty;sMap[key][grp]+=s.qty;}
+      });
+      _saStaffData = Object.values(sMap).map(s=>({...s,bills:s.bills.size}));
+      renderSAStaffTable();
+    }
+
+    // ===== Populate RD Staff Data from Rating =====
+    function populateRDStaffData(ratingArr) {
+      const rMap = {};
+      ratingArr.forEach(r => {
+        let key = (r.staffId && r.staffId!=='-') ? r.staffId : r.staffName;
+        if(!key || key==='ไม่ระบุ') return;
+        if(!rMap[key]) rMap[key] = {name:r.staffName,id:r.staffId,branch:r.branch,demos:0,rSum:0,rCount:0};
+        rMap[key].demos++;
+        if(r.rating>0){rMap[key].rSum+=r.rating;rMap[key].rCount++;}
+      });
+      _rdStaffData = Object.values(rMap);
+      renderRDStaffTable();
+    }
+
 
     function changeTrafficSort(prefix, key) {
       if (state.trafficSort[prefix].key === key) {
