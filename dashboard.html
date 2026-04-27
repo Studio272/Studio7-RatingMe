@@ -565,6 +565,15 @@
       border-bottom: none;
     }
 
+    .staff-col-toggle {
+      display: flex; align-items: center; gap: 3px;
+      font-size: 11px; color: var(--text); cursor: pointer;
+      padding: 2px 8px; background: var(--bg); border-radius: 6px;
+      border: 1px solid var(--border); transition: all 0.15s;
+    }
+    .staff-col-toggle:hover { border-color: var(--accent); }
+    .staff-col-toggle input { accent-color: var(--accent); margin: 0; }
+
     .row-clickable:hover td {
       background: var(--accent-lt);
       cursor: pointer;
@@ -1688,19 +1697,32 @@
             (คลิกที่ชื่อเพื่อดูรายละเอียด)</span>
           <div class="sec-line"></div><span class="sec-sub">ยอดขาย + Demo Rating + Feedback</span>
         </div>
+
+        <!-- Column Visibility Toggle -->
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:8px; padding:6px 12px; background:var(--card); border-radius:8px; border:1px solid var(--border);">
+          <span style="font-size:11px; font-weight:600; color:var(--text);">👁 แสดง/ซ่อนคอลัมน์:</span>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-rev', this.checked)"> ยอดขาย</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-items', this.checked)"> ชิ้น</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-bills', this.checked)"> บิล</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-demos', this.checked)"> Demo</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-close', this.checked)"> ปิดการขาย</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-rating', this.checked)"> Rating</label>
+          <label class="staff-col-toggle"><input type="checkbox" checked onchange="toggleStaffCol('col-status', this.checked)"> สถานะ</label>
+        </div>
+
         <div class="panel">
-          <table class="stable">
+          <table class="stable" id="staffTable">
             <thead>
               <tr>
                 <th style="width:40px">#</th>
                 <th class="row-clickable" onclick="changeStaffSort('name')" style="cursor:pointer; text-align:left;">พนักงาน (คลิกเพื่อดูข้อมูล) <span id="sort-staff-name"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('rev')" style="cursor:pointer">ยอดขาย (฿) <span id="sort-staff-rev"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('items')" style="cursor:pointer">ชิ้น <span id="sort-staff-items"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('bills')" style="cursor:pointer">บิล <span id="sort-staff-bills"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('demos')" style="cursor:pointer">Demo <span id="sort-staff-demos"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('close')" style="cursor:pointer" title="เปอร์เซ็นต์ปิดการขาย (ชิ้น / Demo)">ปิดการขาย <span id="sort-staff-close"></span></th>
-                <th class="r row-clickable" onclick="changeStaffSort('rating')" style="cursor:pointer">Rating <span id="sort-staff-rating"></span></th>
-                <th class="r">สถานะ</th>
+                <th class="r row-clickable col-rev" onclick="changeStaffSort('rev')" style="cursor:pointer">ยอดขาย (฿) <span id="sort-staff-rev"></span></th>
+                <th class="r row-clickable col-items" onclick="changeStaffSort('items')" style="cursor:pointer">ชิ้น <span id="sort-staff-items"></span></th>
+                <th class="r row-clickable col-bills" onclick="changeStaffSort('bills')" style="cursor:pointer">บิล <span id="sort-staff-bills"></span></th>
+                <th class="r row-clickable col-demos" onclick="changeStaffSort('demos')" style="cursor:pointer">Demo <span id="sort-staff-demos"></span></th>
+                <th class="r row-clickable col-close" onclick="changeStaffSort('close')" style="cursor:pointer" title="เปอร์เซ็นต์ปิดการขาย (ชิ้น / Demo)">ปิดการขาย <span id="sort-staff-close"></span></th>
+                <th class="r row-clickable col-rating" onclick="changeStaffSort('rating')" style="cursor:pointer">Rating <span id="sort-staff-rating"></span></th>
+                <th class="r col-status">สถานะ</th>
               </tr>
             </thead>
             <tbody id="combinedBody"></tbody>
@@ -3699,7 +3721,7 @@
         } else if (s.items > 0) {
           closeRate = '<span style="color:#10b981">No Demo</span>';
         }
-        cbHtml += `<tr class="row-clickable" onclick="window.openModal('${s.id}','${s.name}')"><td>${i + 1}</td><td><span class="staff-name">${s.name}</span><span class="staff-id">${s.id}</span></td><td class="text-r">฿${s.rev.toLocaleString()}</td><td class="text-r">${s.items.toLocaleString()}</td><td class="text-r">${s.bills.size}</td><td class="text-r">${s.demos}</td><td class="text-r">${closeRate}</td><td class="text-r">${s.rCount > 0 ? (s.rSum / s.rCount).toFixed(2) : '-'}</td><td class="text-r">${badge}</td></tr>`;
+        cbHtml += `<tr class="row-clickable" onclick="window.openModal('${s.id}','${s.name}')"><td>${i + 1}</td><td><span class="staff-name">${s.name}</span><span class="staff-id">${s.id}</span></td><td class="text-r col-rev">฿${s.rev.toLocaleString()}</td><td class="text-r col-items">${s.items.toLocaleString()}</td><td class="text-r col-bills">${s.bills.size}</td><td class="text-r col-demos">${s.demos}</td><td class="text-r col-close">${closeRate}</td><td class="text-r col-rating">${s.rCount > 0 ? (s.rSum / s.rCount).toFixed(2) : '-'}</td><td class="text-r col-status">${badge}</td></tr>`;
 
       });
       cb.innerHTML = cbHtml;
@@ -5368,6 +5390,21 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       }
       renderDashboard();
     }
+
+    // Column visibility toggle for staff table
+    let staffColStyle = document.createElement('style');
+    document.head.appendChild(staffColStyle);
+    window.toggleStaffCol = function(colClass, show) {
+      // Rebuild all hide rules from current checkbox states
+      let rules = '';
+      document.querySelectorAll('.staff-col-toggle input').forEach(cb => {
+        let cls = cb.getAttribute('onchange').match(/'([^']+)'/)[1];
+        if (!cb.checked) {
+          rules += `#staffTable .${cls} { display: none !important; }\n`;
+        }
+      });
+      staffColStyle.textContent = rules;
+    };
 
     function changeTrafficSort(prefix, key) {
       if (state.trafficSort[prefix].key === key) {
