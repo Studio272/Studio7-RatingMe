@@ -21,21 +21,21 @@
     "studio7": "studio7",
     "cloudtest01cloud1234": "cloud1234",
     "newuser01": "pass1234",
-    "godrm": "1234"
+    "godrm": "1234",
+    "tester": "password"
   },
   "pending": {
     "1234": "1234",
     "22068": "22068",
     "32570": "Tp261157",
-    "testuser": "testpass",
-    "test": "test",
     "teast02": "test02",
     "test1": "test1",
-    "tester": "password"
+    "testuser": "testpass",
+    "test": "test"
   },
   "reset_requests": [
-    "admin",
     "10562",
-    "32570"
+    "32570",
+    "admin"
   ]
 }
