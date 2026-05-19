@@ -1723,8 +1723,8 @@
             <span style="font-size:16px;">🤖</span> วิเคราะห์ภาพรวมสาขาด้วย AI
           </button>
         </div>
-        <div class="kpi-row" style="margin-bottom:14px">
-          <div class="kpi">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;margin-bottom:14px;">
+          <div class="kpi" style="flex:1;min-width:180px;">
             <div class="kpi-top">
               <div class="kpi-icon" style="background:#fffbeb">⭐</div><span class="kpi-tag"
                 style="background:#fffbeb;color:#92400e">คะแนนเฉลี่ย</span>
@@ -1732,7 +1732,7 @@
             <div class="kpi-val" id="kpi-rating" style="color:#f59e0b">0.00</div>
             <div class="kpi-label" id="kpi-rating-sub">จาก 0 ที่ให้คะแนน</div>
           </div>
-          <div class="kpi">
+          <div class="kpi" style="flex:1;min-width:180px;">
             <div class="kpi-top">
               <div class="kpi-icon" style="background:var(--accent-lt)">🎯</div><span class="kpi-tag"
                 style="background:var(--accent-lt);color:var(--accent)">Demo ทั้งหมด</span>
@@ -1740,7 +1740,31 @@
             <div class="kpi-val" id="kpi-demo">0</div>
             <div class="kpi-label" id="kpi-demo-sub">ครั้ง</div>
           </div>
-          <div class="kpi">
+          <div class="kpi" style="flex:1;min-width:180px;">
+            <div class="kpi-top">
+              <div class="kpi-icon" style="background:#ecfdf5">📩</div><span class="kpi-tag"
+                style="background:#ecfdf5;color:#059669">ตอบกลับ Discovery</span>
+            </div>
+            <div class="kpi-val" id="kpi-disc-success" style="color:#059669">0</div>
+            <div class="kpi-label" id="kpi-disc-sub">สำเร็จ 0 · ไม่สำเร็จ 0 · ไม่สำเร็จ 0%</div>
+          </div>
+          <div class="kpi" style="flex:1;min-width:180px;">
+            <div class="kpi-top">
+              <div class="kpi-icon" style="background:#dbeafe">✅</div><span class="kpi-tag"
+                style="background:#dbeafe;color:#1d4ed8">%สำเร็จ Discovery</span>
+            </div>
+            <div class="kpi-val" id="kpi-disc-pct" style="color:#1d4ed8">0%</div>
+            <div class="kpi-label" id="kpi-disc-pct-sub">จาก 0 Demo</div>
+          </div>
+          <div class="kpi" style="flex:1;min-width:180px;">
+            <div class="kpi-top">
+              <div class="kpi-icon" style="background:#fdf4ff">💬</div><span class="kpi-tag"
+                style="background:#fdf4ff;color:#9333ea">ตอบกลับ Demo Topic</span>
+            </div>
+            <div class="kpi-val" id="kpi-demotopic-success" style="color:#9333ea">0</div>
+            <div class="kpi-label" id="kpi-demotopic-sub">สำเร็จ 0 · ไม่สำเร็จ 0 · ไม่สำเร็จ 0%</div>
+          </div>
+          <div class="kpi" style="flex:1;min-width:180px;">
             <div class="kpi-top">
               <div class="kpi-icon" style="background:var(--purple-lt)">💻</div><span class="kpi-tag"
                 style="background:var(--purple-lt);color:var(--purple)">หัวข้อหลัก</span>
@@ -1749,7 +1773,7 @@
               style="font-size:22px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">-</div>
             <div class="kpi-label" id="kpi-topic-sub">-</div>
           </div>
-          <div class="kpi">
+          <div class="kpi" style="flex:1;min-width:180px;">
             <div class="kpi-top">
               <div class="kpi-icon" style="background:var(--green-lt)">🥇</div><span class="kpi-tag"
                 style="background:var(--green-lt);color:var(--green)">Top Demo</span>
@@ -1772,7 +1796,27 @@
 
         <!-- Rating All Branches Summary Panel -->
         <div class="panel" style="margin-top:16px;">
-          <div class="panel-title"><span class="ptag" style="background:#f59e0b"></span> สรุปรวมสาขา (Rating Demo)</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div class="panel-title" style="margin-bottom:0;"><span class="ptag" style="background:#f59e0b"></span> สรุปรวมสาขา (Rating Demo)</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-size:10px;color:var(--sub);">เรียงจาก:</span>
+              <select id="rb-sort-sel" class="filter-select" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;" onchange="renderRatingBranchTable()">
+                <option value="demos_desc">Demo สูง→ต่ำ</option>
+                <option value="demos_asc">Demo ต่ำ→สูง</option>
+                <option value="staff_desc">พนักงาน สูง→ต่ำ</option>
+                <option value="staff_asc">พนักงาน ต่ำ→สูง</option>
+                <option value="units_desc">Unit ขาย สูง→ต่ำ</option>
+                <option value="units_asc">Unit ขาย ต่ำ→สูง</option>
+                <option value="topicResp_desc">ตอบกลับ Demo Topic สูง→ต่ำ</option>
+                <option value="topicResp_asc">ตอบกลับ Demo Topic ต่ำ→สูง</option>
+                <option value="topicFail_desc">%ไม่สำเร็จ Demo Topic สูง→ต่ำ</option>
+                <option value="topicFail_asc">%ไม่สำเร็จ Demo Topic ต่ำ→สูง</option>
+                <option value="rating_desc">ความพึงพอใจ สูง→ต่ำ</option>
+                <option value="rating_asc">ความพึงพอใจ ต่ำ→สูง</option>
+                <option value="name">สาขา A→Z</option>
+              </select>
+            </div>
+          </div>
           <div class="t-kpi-grid" id="rkpi-allbranch" style="margin-bottom:16px;"></div>
           <div class="t-table-box" style="overflow-x:auto;">
             <table class="t-table" id="rtbl-allbranch"><thead></thead><tbody></tbody></table>
@@ -1787,8 +1831,14 @@
             <select id="rd-staff-sort-sel" class="filter-select" style="font-size:11px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;" onchange="renderRDStaffTable()">
               <option value="demos_desc">Demo สูง→ต่ำ</option>
               <option value="demos_asc">Demo ต่ำ→สูง</option>
-              <option value="rating_desc">Rating สูง→ต่ำ</option>
-              <option value="rating_asc">Rating ต่ำ→สูง</option>
+              <option value="units_desc">Unit ขาย สูง→ต่ำ</option>
+              <option value="units_asc">Unit ขาย ต่ำ→สูง</option>
+              <option value="topicResp_desc">ตอบกลับ Demo Topic สูง→ต่ำ</option>
+              <option value="topicResp_asc">ตอบกลับ Demo Topic ต่ำ→สูง</option>
+              <option value="topicFail_desc">%ไม่สำเร็จ Demo Topic สูง→ต่ำ</option>
+              <option value="topicFail_asc">%ไม่สำเร็จ Demo Topic ต่ำ→สูง</option>
+              <option value="rating_desc">ความพึงพอใจ สูง→ต่ำ</option>
+              <option value="rating_asc">ความพึงพอใจ ต่ำ→สูง</option>
               <option value="name">ชื่อ A→Z</option>
             </select>
           </div>
@@ -3680,9 +3730,41 @@
       let kpiDemoSub = document.getElementById('kpi-demo-sub');
       if (kpiDemoSub) kpiDemoSub.textContent = wLabel;
 
+
       const topicsSorted = Object.entries(topicMap).sort((a, b) => b[1] - a[1]);
       if (topicsSorted.length > 0) { document.getElementById('kpi-topic').textContent = topicsSorted[0][0]; }
       else { document.getElementById('kpi-topic').textContent = '-'; }
+
+      // Discovery success/failure KPI
+      let discSuccess = 0, discFail = 0;
+      curRating.forEach(r => {
+        let fb = String(r.feedback1 || '').trim();
+        if (fb && fb !== '-' && fb !== 'N/A') discSuccess++; else discFail++;
+      });
+      let discFailPct = tDemos > 0 ? ((discFail / tDemos) * 100).toFixed(1) : '0.0';
+      let discSuccessPct = tDemos > 0 ? ((discSuccess / tDemos) * 100).toFixed(1) : '0.0';
+      let discEl = document.getElementById('kpi-disc-success');
+      if (discEl) discEl.textContent = discSuccess.toLocaleString();
+      let discSubEl = document.getElementById('kpi-disc-sub');
+      if (discSubEl) discSubEl.innerHTML = `สำเร็จ <b style="color:#059669">${discSuccess.toLocaleString()}</b> · ไม่สำเร็จ <b style="color:#e11d48">${discFail.toLocaleString()}</b> · <span style="color:#e11d48;font-weight:700">${discFailPct}%</span>`;
+
+      // %สำเร็จ Discovery KPI
+      let discPctEl = document.getElementById('kpi-disc-pct');
+      if (discPctEl) discPctEl.textContent = discSuccessPct + '%';
+      let discPctSubEl = document.getElementById('kpi-disc-pct-sub');
+      if (discPctSubEl) discPctSubEl.textContent = `จาก ${tDemos.toLocaleString()} Demo`;
+
+      // Demo Topic (feedback2) success/failure KPI
+      let topicRespOk = 0, topicRespFail = 0;
+      curRating.forEach(r => {
+        let fb2 = String(r.feedback2 || '').trim();
+        if (fb2 && fb2 !== '-' && fb2 !== 'N/A') topicRespOk++; else topicRespFail++;
+      });
+      let topicRespFailPct = tDemos > 0 ? ((topicRespFail / tDemos) * 100).toFixed(1) : '0.0';
+      let topicRespEl = document.getElementById('kpi-demotopic-success');
+      if (topicRespEl) topicRespEl.textContent = topicRespOk.toLocaleString();
+      let topicRespSubEl = document.getElementById('kpi-demotopic-sub');
+      if (topicRespSubEl) topicRespSubEl.innerHTML = `สำเร็จ <b style="color:#9333ea">${topicRespOk.toLocaleString()}</b> · ไม่สำเร็จ <b style="color:#e11d48">${topicRespFail.toLocaleString()}</b> · <span style="color:#e11d48;font-weight:700">${topicRespFailPct}%</span>`;
 
       // Chart Rendering
       if (charts.sales) charts.sales.destroy();
@@ -3729,6 +3811,8 @@
 
       // --- Rating All Branches Summary ---
       const rBranchMap = {};
+      // Track unique staff per branch from rating data
+      const rBranchStaffMap = {};
       state.rating.forEach(r => {
         let tMonth = state.selectedMonth !== 'all' ? parseInt(state.selectedMonth) : null;
         let tYear = state.selectedYear !== 'all' ? parseInt(state.selectedYear) : null;
@@ -3739,69 +3823,71 @@
         if(state.selectedCat !== 'all' && (r.category || '').trim().toLowerCase() !== state.selectedCat.trim().toLowerCase()) return;
 
         let br = r.branch || 'ไม่ระบุสาขา';
-        if(!rBranchMap[br]) rBranchMap[br] = { demos: 0, rSum: 0, rCount: 0 };
+        if(!rBranchMap[br]) rBranchMap[br] = { demos: 0, rSum: 0, rCount: 0, discOk: 0, discFail: 0, topicOk: 0, topicFail: 0 };
         rBranchMap[br].demos += 1;
         if(r.rating > 0) { rBranchMap[br].rSum += r.rating; rBranchMap[br].rCount++; }
+        let _fb = String(r.feedback1 || '').trim();
+        if(_fb && _fb !== '-' && _fb !== 'N/A') rBranchMap[br].discOk++; else rBranchMap[br].discFail++;
+        let _fb2 = String(r.feedback2 || '').trim();
+        if(_fb2 && _fb2 !== '-' && _fb2 !== 'N/A') rBranchMap[br].topicOk++; else rBranchMap[br].topicFail++;
+        // Track unique staff
+        if(!rBranchStaffMap[br]) rBranchStaffMap[br] = new Set();
+        let sKey = (r.staffId && r.staffId !== '-') ? r.staffId : r.staffName;
+        if(sKey && sKey !== 'ไม่ระบุ') rBranchStaffMap[br].add(sKey);
+      });
+
+      // Get units sold per branch from curSales
+      const rBranchUnitsMap = {};
+      curSales.forEach(s => {
+        let br = s.branch || 'ไม่ระบุสาขา';
+        if(!rBranchUnitsMap[br]) rBranchUnitsMap[br] = 0;
+        if(['53','54','48','72'].includes(s.catId) && (s.productType||'').toUpperCase().replace(/\s+/g,' ').trim() === 'INVENTORY ITEM') {
+          rBranchUnitsMap[br] += s.qty;
+        }
       });
 
       const rBranchArr = Object.entries(rBranchMap).map(([name, d]) => ({
         name,
         demos: d.demos,
         rCount: d.rCount,
-        rating: d.rCount > 0 ? (d.rSum / d.rCount) : 0
-      })).sort((a, b) => b.demos - a.demos);
+        rSum: d.rSum,
+        rating: d.rCount > 0 ? (d.rSum / d.rCount) : 0,
+        discOk: d.discOk, discFail: d.discFail,
+        topicOk: d.topicOk, topicFail: d.topicFail,
+        staffCount: rBranchStaffMap[name] ? rBranchStaffMap[name].size : 0,
+        units: rBranchUnitsMap[name] || 0
+      }));
 
       const rTotalDemos = rBranchArr.reduce((s, b) => s + b.demos, 0);
       const rTotalRated = rBranchArr.reduce((s, b) => s + b.rCount, 0);
       const rSumAll = Object.values(rBranchMap).reduce((s, d) => s + d.rSum, 0);
       const rOverallAvg = rTotalRated > 0 ? (rSumAll / rTotalRated) : 0;
-      const rAvgDemos = rBranchArr.length > 0 ? (rTotalDemos / rBranchArr.length) : 0;
+      const rTotalStaff = rBranchArr.reduce((s, b) => s + b.staffCount, 0);
+      const rTotalUnits = rBranchArr.reduce((s, b) => s + b.units, 0);
+      const rTotalTopicOk = rBranchArr.reduce((s, b) => s + b.topicOk, 0);
+      const rTotalTopicFail = rBranchArr.reduce((s, b) => s + b.topicFail, 0);
+      const rTotalTopicFailPct = rTotalDemos > 0 ? ((rTotalTopicFail / rTotalDemos) * 100).toFixed(1) : '0.0';
+      const rOverallDemoPerStaff = rTotalStaff > 0 ? (rTotalDemos / rTotalStaff) : 0;
+
+      // Store globally for sorting
+      window._rBranchArr = rBranchArr;
+      window._rBranchTotals = { rTotalDemos, rTotalRated, rSumAll, rOverallAvg, rTotalStaff, rTotalUnits, rTotalTopicOk, rTotalTopicFail, rTotalTopicFailPct, rOverallDemoPerStaff };
 
       let rkpiEl = document.getElementById('rkpi-allbranch');
       if (rkpiEl) {
         rkpiEl.innerHTML = `
           <div class="t-kpi"><div class="label">จำนวนสาขา</div><div class="val">${rBranchArr.length}</div></div>
-          <div class="t-kpi"><div class="label">Demo รวมทุกสาขา</div><div class="val">${rTotalDemos.toLocaleString()}</div></div>
-          <div class="t-kpi"><div class="label">จำนวนโหวต Rating รวม</div><div class="val">${rTotalRated.toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">พนักงานรวม</div><div class="val">${rTotalStaff.toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">Unit ขายรวม</div><div class="val">${rTotalUnits.toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">Demo รวม</div><div class="val">${rTotalDemos.toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">ตอบกลับ Demo Topic</div><div class="val" style="color:#9333ea">${rTotalTopicOk.toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">%ไม่สำเร็จ Demo Topic</div><div class="val" style="color:#e11d48">${rTotalTopicFailPct}%</div></div>
           <div class="t-kpi"><div class="label">Rating เฉลี่ย (ภาพรวม)</div><div class="val" style="color:#f59e0b">${rOverallAvg.toFixed(2)}</div></div>
-          <div class="t-kpi"><div class="label">Demo เฉลี่ยต่อสาขา</div><div class="val" style="color:#d97706">${Math.round(rAvgDemos).toLocaleString()}</div></div>
+          <div class="t-kpi"><div class="label">Demo เฉลี่ยต่อพนักงาน</div><div class="val" style="color:#d97706">${rOverallDemoPerStaff.toFixed(1)}</div></div>
         `;
       }
 
-      let rtHead = `<tr>
-        <th style="text-align:left">สาขา</th>
-        <th>จำนวน Demo</th>
-        <th>จำนวนผู้ให้คะแนน</th>
-        <th style="background:#fef3c7; font-weight:700;">Rating เฉลี่ย</th>
-        <th>เทียบค่าเฉลี่ยภาพรวม</th>
-      </tr>`;
-      let rtBody = '';
-      rBranchArr.forEach(b => {
-        let diff = b.rating - rOverallAvg;
-        let diffStr = diff > 0 ? '+' + diff.toFixed(2) : diff.toFixed(2);
-        let diffColor = diff >= 0 ? 'color:#10b981' : 'color:#ef4444';
-        let rowBg = b.rating >= rOverallAvg ? '' : ' style="background:#fff7ed;"';
-        rtBody += `<tr${rowBg}>
-          <td style="text-align:left; font-weight:600;">${b.name}</td>
-          <td>${b.demos.toLocaleString()}</td>
-          <td>${b.rCount.toLocaleString()}</td>
-          <td style="font-weight:700; color:#d97706; background:#fef3c7;">${b.rating.toFixed(2)}</td>
-          <td><span style="${diffColor}; font-weight:600;">${b.rCount > 0 ? diffStr : '-'}</span></td>
-        </tr>`;
-      });
-      rtBody += `<tr style="background:#f1f5f9; font-weight:700; border-top:2px solid var(--border);">
-        <td style="text-align:left;">รวมทั้งหมด</td>
-        <td>${rTotalDemos.toLocaleString()}</td>
-        <td>${rTotalRated.toLocaleString()}</td>
-        <td style="color:#d97706; background:#fef3c7;">${rOverallAvg.toFixed(2)}</td>
-        <td>-</td>
-      </tr>`;
-
-      let rtblEl = document.getElementById('rtbl-allbranch');
-      if (rtblEl) {
-        rtblEl.querySelector('thead').innerHTML = rtHead;
-        rtblEl.querySelector('tbody').innerHTML = rtBody;
-      }
+      renderRatingBranchTable();
 
       // Staff Table calculation
       const cMap = {};
@@ -3989,7 +4075,7 @@
 
       // Render Rating Demo staff summary
       if(state.rating && state.rating.length > 0) {
-        populateRDStaffData(curRating);
+        populateRDStaffData(curRating, curSales);
       }
     }
 
@@ -5853,64 +5939,66 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       const hlEl = document.getElementById('rd-staff-highlight');
       if(!theadEl || !tbodyEl || !hlEl) return;
       if(!_rdStaffData || _rdStaffData.length === 0) {
-        theadEl.innerHTML = ''; tbodyEl.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--sub);padding:16px;">ไม่มีข้อมูล</td></tr>'; hlEl.innerHTML = ''; return;
+        theadEl.innerHTML = ''; tbodyEl.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--sub);padding:16px;">ไม่มีข้อมูล</td></tr>'; hlEl.innerHTML = ''; return;
       }
       const sortSel = document.getElementById('rd-staff-sort-sel');
       const sortBy = sortSel ? sortSel.value : 'demos_desc';
       let arr = [..._rdStaffData];
+      // Sorting
       if(sortBy==='demos_desc') arr.sort((a,b)=>b.demos-a.demos);
       else if(sortBy==='demos_asc') arr.sort((a,b)=>a.demos-b.demos);
+      else if(sortBy==='units_desc') arr.sort((a,b)=>b.units-a.units);
+      else if(sortBy==='units_asc') arr.sort((a,b)=>a.units-b.units);
+      else if(sortBy==='topicResp_desc') arr.sort((a,b)=>b.topicOk-a.topicOk);
+      else if(sortBy==='topicResp_asc') arr.sort((a,b)=>a.topicOk-b.topicOk);
+      else if(sortBy==='topicFail_desc') arr.sort((a,b)=>{let pa=a.demos>0?(a.topicFail/a.demos):0,pb=b.demos>0?(b.topicFail/b.demos):0;return pb-pa;});
+      else if(sortBy==='topicFail_asc') arr.sort((a,b)=>{let pa=a.demos>0?(a.topicFail/a.demos):0,pb=b.demos>0?(b.topicFail/b.demos):0;return pa-pb;});
       else if(sortBy==='rating_desc') arr.sort((a,b)=>(b.rCount>0?b.rSum/b.rCount:0)-(a.rCount>0?a.rSum/a.rCount:0));
       else if(sortBy==='rating_asc') arr.sort((a,b)=>(a.rCount>0?a.rSum/a.rCount:Infinity)-(b.rCount>0?b.rSum/b.rCount:Infinity));
       else arr.sort((a,b)=>a.name.localeCompare(b.name,'th'));
 
-      let withRating = arr.filter(s=>s.rCount>0);
+      // Highlight cards
       let byDemos = [...arr].sort((a,b)=>b.demos-a.demos);
       let topDemo = byDemos[0], botDemo = byDemos.length>1?byDemos[byDemos.length-1]:null;
-      let byRating = [...withRating].sort((a,b)=>(b.rSum/b.rCount)-(a.rSum/a.rCount));
-      let topRating = byRating[0], botRating = byRating.length>1?byRating[byRating.length-1]:null;
-
       let hlHtml = '';
       if(topDemo) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--green);flex:1;min-width:200px;">
         <div style="font-size:24px;line-height:1;">🏆</div>
         <div><div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:.5px;margin-bottom:2px;">DEMO มากที่สุด</div>
         <div style="font-size:14px;font-weight:700;color:var(--text);">${topDemo.name}</div>
-        <div style="font-size:11px;color:var(--sub);">${topDemo.demos} ครั้ง${topDemo.rCount>0?' · ★'+(topDemo.rSum/topDemo.rCount).toFixed(2):''}</div></div>
+        <div style="font-size:11px;color:var(--sub);">${topDemo.demos} ครั้ง · ${topDemo.units} unit</div></div>
       </div>`;
       if(botDemo && botDemo.name!==topDemo.name) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--rose);flex:1;min-width:200px;">
         <div style="font-size:24px;line-height:1;">📉</div>
         <div><div style="font-size:10px;font-weight:700;color:var(--rose);letter-spacing:.5px;margin-bottom:2px;">DEMO น้อยที่สุด</div>
         <div style="font-size:14px;font-weight:700;color:var(--text);">${botDemo.name}</div>
-        <div style="font-size:11px;color:var(--sub);">${botDemo.demos} ครั้ง</div></div>
-      </div>`;
-      if(topRating) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--amber);flex:1;min-width:200px;">
-        <div style="font-size:24px;line-height:1;">⭐</div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.5px;margin-bottom:2px;">Rating สูงสุด</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">${topRating.name}</div>
-        <div style="font-size:11px;color:var(--sub);">★${(topRating.rSum/topRating.rCount).toFixed(2)} จาก ${topRating.rCount} รายการ</div></div>
-      </div>`;
-      if(botRating && botRating.name!==topRating?.name) hlHtml += `<div class="demo-highlight-card" style="border-left:4px solid var(--purple);flex:1;min-width:200px;">
-        <div style="font-size:24px;line-height:1;">🔻</div>
-        <div><div style="font-size:10px;font-weight:700;color:var(--purple);letter-spacing:.5px;margin-bottom:2px;">Rating ต่ำสุด</div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);">${botRating.name}</div>
-        <div style="font-size:11px;color:var(--sub);">★${(botRating.rSum/botRating.rCount).toFixed(2)} จาก ${botRating.rCount} รายการ</div></div>
+        <div style="font-size:11px;color:var(--sub);">${botDemo.demos} ครั้ง · ${botDemo.units} unit</div></div>
       </div>`;
       hlEl.innerHTML = hlHtml;
 
-      const topDemoName = topDemo?.name, botDemoName = botDemo?.name;
-      theadEl.innerHTML = `<th style="width:36px;text-align:center;font-size:10px;">#</th><th style="text-align:left;">พนักงาน</th><th class="r">Demo ทั้งหมด</th><th class="r">Rating เฉลี่ย</th><th class="r">จำนวนที่ให้คะแนน</th><th class="r">สาขา</th>`;
+      // Overall average for red text comparison
+      const totalDemos = arr.reduce((s,x)=>s+x.demos,0);
+      const totalStaff = arr.length;
+      const overallDemoPerStaff = totalStaff > 0 ? (totalDemos / totalStaff) : 0;
+
+      theadEl.innerHTML = `<th style="width:36px;text-align:center;font-size:10px;">#</th><th style="text-align:left;">พนักงาน</th><th class="r">Sale Unit</th><th class="r">Att%Unit</th><th class="r" style="background:#fffbeb;">Demo</th><th class="r" style="background:#fdf4ff;">สำเร็จ</th><th class="r" style="background:#fff1f4;">ไม่สำเร็จ</th><th class="r" style="background:#fef3c7;">ความพึงพอใจ</th><th class="r">สาขา</th>`;
       let tbody = '';
       arr.forEach((s,i) => {
         let rankEmoji = i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-        let rowBg = s.name===topDemoName?'background:#f0fdf4;':s.name===botDemoName?'background:#fff5f5;':'';
         let avgRating = s.rCount>0?(s.rSum/s.rCount).toFixed(2):'-';
         let ratingColor = s.rCount>0?(s.rSum/s.rCount>=4?'color:#059669;':s.rSum/s.rCount>=3?'color:var(--amber);':'color:var(--rose);'):'';
-        tbody += `<tr style="${rowBg}">
+        let unitDemoPct = s.demos>0?((s.units/s.demos)*100).toFixed(1):'0.0';
+        let topicFailPct = s.demos>0?((s.topicFail/s.demos)*100).toFixed(1):'0.0';
+        // Red text if this staff's demo count is below average
+        let demoStyle = s.demos < overallDemoPerStaff ? 'font-weight:700;color:#e11d48;' : 'font-weight:700;color:var(--accent);';
+        tbody += `<tr>
           <td style="text-align:center;font-weight:700;color:var(--sub);font-size:11px;">${rankEmoji}</td>
           <td style="text-align:left;"><span class="staff-name" style="font-size:12px;">${s.name}</span><span class="staff-id">${s.id!==s.name?s.id:''}</span></td>
-          <td class="text-r" style="font-weight:700;color:var(--accent);">${s.demos.toLocaleString()}</td>
-          <td class="text-r" style="font-weight:700;${ratingColor}">${avgRating!=='-'?'★'+avgRating:'-'}</td>
-          <td class="text-r" style="color:var(--sub);">${s.rCount.toLocaleString()}</td>
+          <td class="text-r" style="font-weight:600;color:var(--green);">${s.units.toLocaleString()}</td>
+          <td class="text-r" style="color:var(--sub);">${unitDemoPct}%</td>
+          <td class="text-r" style="${demoStyle}background:#fffdf7;">${s.demos.toLocaleString()}</td>
+          <td class="text-r" style="color:#9333ea;font-weight:600;background:#fdf4ff;">${(s.topicOk||0).toLocaleString()}</td>
+          <td class="text-r" style="color:#e11d48;font-weight:600;background:#fff5f5;">${topicFailPct}%</td>
+          <td class="text-r" style="font-weight:700;${ratingColor}background:#fefce8;">${avgRating!=='-'?'★'+avgRating:'-'}</td>
           <td class="text-r" style="font-size:11px;color:var(--sub);">${s.branch||'-'}</td>
         </tr>`;
       });
@@ -5937,20 +6025,108 @@ CRITICAL: All textual values and descriptions inside the JSON MUST BE IN THAI LA
       renderSAStaffTable();
     }
 
-    // ===== Populate RD Staff Data from Rating =====
-    function populateRDStaffData(ratingArr) {
+    // ===== Populate RD Staff Data from Rating + Sales =====
+    function populateRDStaffData(ratingArr, salesArr) {
       const rMap = {};
       ratingArr.forEach(r => {
         let key = (r.staffId && r.staffId!=='-') ? r.staffId : r.staffName;
         if(!key || key==='ไม่ระบุ') return;
-        if(!rMap[key]) rMap[key] = {name:r.staffName,id:r.staffId,branch:r.branch,demos:0,rSum:0,rCount:0};
+        if(!rMap[key]) rMap[key] = {name:r.staffName,id:r.staffId,branch:r.branch,demos:0,rSum:0,rCount:0,discOk:0,discFail:0,topicOk:0,topicFail:0,units:0};
         rMap[key].demos++;
         if(r.rating>0){rMap[key].rSum+=r.rating;rMap[key].rCount++;}
+        let _fb = String(r.feedback1 || '').trim();
+        if(_fb && _fb !== '-' && _fb !== 'N/A') rMap[key].discOk++; else rMap[key].discFail++;
+        let _fb2 = String(r.feedback2 || '').trim();
+        if(_fb2 && _fb2 !== '-' && _fb2 !== 'N/A') rMap[key].topicOk++; else rMap[key].topicFail++;
       });
+      // Cross-reference units from sales
+      if(salesArr) {
+        salesArr.forEach(s => {
+          let key = (s.staffId && s.staffId!=='-') ? s.staffId : s.staffName;
+          if(!key || key==='ไม่ระบุ') return;
+          if(rMap[key] && ['53','54','48','72'].includes(s.catId) && (s.productType||'').toUpperCase().replace(/\s+/g,' ').trim() === 'INVENTORY ITEM') {
+            rMap[key].units += s.qty;
+          }
+        });
+      }
       _rdStaffData = Object.values(rMap);
       renderRDStaffTable();
     }
 
+
+    // ===== Render Rating Branch Table (sortable) =====
+    function renderRatingBranchTable() {
+      const arr = window._rBranchArr;
+      const t = window._rBranchTotals;
+      const rtblEl = document.getElementById('rtbl-allbranch');
+      if(!rtblEl || !arr || arr.length === 0) return;
+
+      const sortSel = document.getElementById('rb-sort-sel');
+      const sortBy = sortSel ? sortSel.value : 'demos_desc';
+      let sorted = [...arr];
+      if(sortBy==='demos_desc') sorted.sort((a,b)=>b.demos-a.demos);
+      else if(sortBy==='demos_asc') sorted.sort((a,b)=>a.demos-b.demos);
+      else if(sortBy==='staff_desc') sorted.sort((a,b)=>b.staffCount-a.staffCount);
+      else if(sortBy==='staff_asc') sorted.sort((a,b)=>a.staffCount-b.staffCount);
+      else if(sortBy==='units_desc') sorted.sort((a,b)=>b.units-a.units);
+      else if(sortBy==='units_asc') sorted.sort((a,b)=>a.units-b.units);
+      else if(sortBy==='topicResp_desc') sorted.sort((a,b)=>b.topicOk-a.topicOk);
+      else if(sortBy==='topicResp_asc') sorted.sort((a,b)=>a.topicOk-b.topicOk);
+      else if(sortBy==='topicFail_desc') sorted.sort((a,b)=>{let pa=a.demos>0?(a.topicFail/a.demos):0,pb=b.demos>0?(b.topicFail/b.demos):0;return pb-pa;});
+      else if(sortBy==='topicFail_asc') sorted.sort((a,b)=>{let pa=a.demos>0?(a.topicFail/a.demos):0,pb=b.demos>0?(b.topicFail/b.demos):0;return pa-pb;});
+      else if(sortBy==='rating_desc') sorted.sort((a,b)=>b.rating-a.rating);
+      else if(sortBy==='rating_asc') sorted.sort((a,b)=>a.rating-b.rating);
+      else sorted.sort((a,b)=>a.name.localeCompare(b.name,'th'));
+
+      let rtHead = `<tr>
+        <th style="text-align:left">สาขา</th>
+        <th>พนักงาน</th><th>AVG/PIA</th>
+        <th>Sale Unit</th><th>Att%Unit</th>
+        <th style="background:#fffbeb;font-weight:700;">Demo</th>
+        <th style="background:#fdf4ff;">สำเร็จ</th>
+        <th style="background:#fff1f4;">ไม่สำเร็จ</th>
+        <th style="background:#fef3c7;font-weight:700;">ความพึงพอใจ</th>
+      </tr>`;
+
+      let rtBody = '';
+      sorted.forEach(b => {
+        let demoPerStaff = b.staffCount > 0 ? (b.demos / b.staffCount) : 0;
+        let avgPia = b.staffCount > 0 ? (b.demos / b.staffCount).toFixed(1) : '0.0';
+        let unitDemoPct = b.demos > 0 ? ((b.units / b.demos) * 100).toFixed(1) : '0.0';
+        let topicFailPct = b.demos > 0 ? ((b.topicFail / b.demos) * 100).toFixed(1) : '0.0';
+        // Red text if demo-per-staff is below overall average
+        let isBelowAvg = demoPerStaff < t.rOverallDemoPerStaff;
+        let staffStyle = isBelowAvg ? 'color:#e11d48;font-weight:700;' : 'font-weight:600;';
+        let pctStyle = isBelowAvg ? 'color:#e11d48;font-weight:700;' : 'color:var(--sub);';
+        rtBody += `<tr>
+          <td style="text-align:left;font-weight:600;">${b.name}</td>
+          <td style="${staffStyle}">${b.staffCount.toLocaleString()}</td>
+          <td style="${pctStyle}">${avgPia}</td>
+          <td style="font-weight:600;color:var(--green);">${b.units.toLocaleString()}</td>
+          <td style="color:var(--sub);">${unitDemoPct}%</td>
+          <td style="font-weight:700;color:var(--accent);background:#fffdf7;">${b.demos.toLocaleString()}</td>
+          <td style="color:#9333ea;font-weight:600;background:#fdf4ff;">${b.topicOk.toLocaleString()}</td>
+          <td style="color:#e11d48;font-weight:600;background:#fff5f5;">${topicFailPct}%</td>
+          <td style="font-weight:700;color:#d97706;background:#fef3c7;">${b.rating.toFixed(2)}</td>
+        </tr>`;
+      });
+
+      // Total row
+      let tAvgPia = t.rTotalStaff > 0 ? (t.rTotalDemos / t.rTotalStaff).toFixed(1) : '0.0';
+      let tUnitDemoPct = t.rTotalDemos > 0 ? ((t.rTotalUnits / t.rTotalDemos) * 100).toFixed(1) : '0.0';
+      rtBody += `<tr style="background:#f1f5f9;font-weight:700;border-top:2px solid var(--border);">
+        <td style="text-align:left;">รวมทั้งหมด</td>
+        <td>${t.rTotalStaff.toLocaleString()}</td><td>${tAvgPia}</td>
+        <td style="color:var(--green);">${t.rTotalUnits.toLocaleString()}</td><td>${tUnitDemoPct}%</td>
+        <td style="color:var(--accent);background:#fffdf7;">${t.rTotalDemos.toLocaleString()}</td>
+        <td style="color:#9333ea;background:#fdf4ff;">${t.rTotalTopicOk.toLocaleString()}</td>
+        <td style="color:#e11d48;background:#fff5f5;">${t.rTotalTopicFailPct}%</td>
+        <td style="color:#d97706;background:#fef3c7;">${t.rOverallAvg.toFixed(2)}</td>
+      </tr>`;
+
+      rtblEl.querySelector('thead').innerHTML = rtHead;
+      rtblEl.querySelector('tbody').innerHTML = rtBody;
+    }
 
     function changeTrafficSort(prefix, key) {
       if (state.trafficSort[prefix].key === key) {
