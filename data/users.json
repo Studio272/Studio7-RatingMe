@@ -24,12 +24,17 @@
     "godrm": "1234"
   },
   "pending": {
+    "1234": "1234",
     "22068": "22068",
     "32570": "Tp261157",
+    "testuser": "testpass",
+    "test": "test",
     "teast02": "test02",
-    "test1": "test1"
+    "test1": "test1",
+    "tester": "password"
   },
   "reset_requests": [
+    "admin",
     "10562",
     "32570"
   ]
