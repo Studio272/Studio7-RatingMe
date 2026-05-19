@@ -22,7 +22,8 @@
     "cloudtest01cloud1234": "cloud1234",
     "newuser01": "pass1234",
     "godrm": "1234",
-    "tester": "password"
+    "tester": "password",
+    "test": "test"
   },
   "pending": {
     "1234": "1234",
@@ -30,8 +31,7 @@
     "32570": "Tp261157",
     "teast02": "test02",
     "test1": "test1",
-    "testuser": "testpass",
-    "test": "test"
+    "testuser": "testpass"
   },
   "reset_requests": [
     "10562",
