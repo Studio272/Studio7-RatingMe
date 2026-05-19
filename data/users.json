@@ -23,15 +23,15 @@
     "newuser01": "pass1234",
     "godrm": "1234",
     "tester": "password",
-    "test": "test"
+    "test": "test",
+    "testuser": "testpass"
   },
   "pending": {
     "1234": "1234",
     "22068": "22068",
     "32570": "Tp261157",
     "teast02": "test02",
-    "test1": "test1",
-    "testuser": "testpass"
+    "test1": "test1"
   },
   "reset_requests": [
     "10562",
