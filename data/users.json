@@ -1,5 +1,21 @@
 {
   "users": {
+    "0": {
+      "username": "admin",
+      "password": "1234",
+      "role": "admin",
+      "status": "approved",
+      "lastLogin": null,
+      "totalMinutes": 0
+    },
+    "1": {
+      "username": "25620",
+      "password": "25620",
+      "role": "user",
+      "status": "approved",
+      "lastLogin": "2026-05-22T04:02:47.056Z",
+      "totalMinutes": 18
+    },
     "243": "243",
     "249": "249",
     "273": "273",
@@ -16,6 +32,7 @@
     "2919": "2919",
     "10506": "18112631",
     "10562": "10562",
+    "22068": "22068",
     "25620": "25620",
     "admin": "1234",
     "studio7": "studio7",
@@ -28,7 +45,6 @@
   },
   "pending": {
     "1234": "1234",
-    "22068": "22068",
     "32570": "Tp261157",
     "teast02": "test02",
     "test1": "test1"
